@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BudgetPro">
+<title>BudgetPro 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #07080f;
+    --bg2: #0f1018;
+    --bg3: #171825;
+    --card: #1a1b2e;
+    --border: rgba(255,255,255,0.10);
+    --text: #f0f0ff;
+    --muted: #9090b8;
+    --accent1: #8b5cf6;
+    --accent2: #f43f8e;
+    --accent3: #06d6a0;
+    --accent4: #fbbf24;
+    --accent5: #38bdf8;
+    --accent6: #fb7185;
+    --green: #10f5a0;
+    --red: #ff4d6d;
+    --radius: 20px;
+    --radius-sm: 14px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+  /* SPLASH */
+  #splash { position:fixed; inset:0; background:linear-gradient(135deg,#0d0821,#0a1628,#0d0821); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition:opacity .5s; }
+  #splash .logo { font-size:3rem; font-weight:800; background:linear-gradient(135deg,#8b5cf6,#f43f8e,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  #splash p { color:var(--muted); margin-top:.5rem; font-size:.95rem; }
+
+  /* NAV */
+  #nav { position:fixed; bottom:0; left:0; right:0; background:rgba(10,10,20,0.97); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.08); display:flex; z-index:9000; padding-bottom:env(safe-area-inset-bottom, 0px); min-height:62px; box-shadow:0 -4px 30px rgba(0,0,0,0.5); }
+  .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:8px 4px; border:none; background:none; color:var(--muted); font-family:inherit; font-size:10px; font-weight:600; cursor:pointer; transition:all .2s; -webkit-tap-highlight-color:transparent; }
+  .nav-btn:nth-child(1).active { color:#8b5cf6; }
+  .nav-btn:nth-child(2).active { color:#f43f8e; }
+  .nav-btn:nth-child(3).active { color:#06d6a0; }
+  .nav-btn:nth-child(4).active { color:#fbbf24; }
+  .nav-btn:nth-child(5).active { color:#38bdf8; }
+  .nav-btn.active svg { filter:drop-shadow(0 0 5px currentColor); }
+  .nav-btn svg { width:22px; height:22px; flex-shrink:0; }
+
+  /* PAGES */
+  .page { display:none; padding:0 0 85px; min-height:100vh; }
+  .page.active { display:block; }
+
+  /* HEADERS — each page its own gradient */
+  .page-header { padding:52px 20px 22px; position:relative; overflow:hidden; }
+  .page-header::before { content:''; position:absolute; inset:0; z-index:0; }
+  .page-header h1,.page-header p { position:relative; z-index:1; }
+  .page-header h1 { font-size:1.9rem; font-weight:800; }
+  .page-header p { font-size:.875rem; margin-top:4px; opacity:.75; }
+  #page-home         .page-header::before { background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(244,63,142,.15),transparent 70%); }
+  #page-cards        .page-header::before { background:linear-gradient(135deg,rgba(244,63,142,.25),rgba(251,191,36,.15),transparent 70%); }
+  #page-transactions .page-header::before { background:linear-gradient(135deg,rgba(6,214,160,.25),rgba(56,189,248,.15),transparent 70%); }
+  #page-income       .page-header::before { background:linear-gradient(135deg,rgba(251,191,36,.25),rgba(139,92,246,.15),transparent 70%); }
+  #page-fixed        .page-header::before { background:linear-gradient(135deg,rgba(56,189,248,.25),rgba(6,214,160,.15),transparent 70%); }
+
+  /* SECTION */
+  .section { padding:0 16px 16px; }
+  .section-title { font-size:.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; margin-bottom:10px; padding:0 4px; }
+
+  /* CARDS */
+  .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
+  .card-sm { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:8px; }
+
+  /* STAT CARDS — full gradient */
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 16px 16px; }
+  .stat-card { border-radius:var(--radius); padding:16px; position:relative; overflow:hidden; border:none; }
+  .stat-card.income  { background:linear-gradient(135deg,#0d4f3c,#0a6b52); box-shadow:0 4px 20px rgba(6,214,160,.2); }
+  .stat-card.expense { background:linear-gradient(135deg,#4a0d2a,#6b1040); box-shadow:0 4px 20px rgba(244,63,142,.2); }
+  .stat-card.profit  { background:linear-gradient(135deg,#2a1a5e,#3b1a88); box-shadow:0 4px 20px rgba(139,92,246,.2); }
+  .stat-card.savings { background:linear-gradient(135deg,#4a3000,#6b4700); box-shadow:0 4px 20px rgba(251,191,36,.2); }
+  .stat-card .label { font-size:.68rem; font-weight:700; color:rgba(255,255,255,.55); text-transform:uppercase; letter-spacing:.1em; }
+  .stat-card .value { font-size:1.45rem; font-weight:800; margin-top:4px; }
+  .stat-card.income  .value { color:#6effd4; }
+  .stat-card.expense .value { color:#ffb3d1; }
+  .stat-card.profit  .value { color:#c4b5fd; }
+  .stat-card.savings .value { color:#fde68a; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { background:rgba(255,255,255,0.08); border-radius:99px; height:9px; overflow:hidden; margin-top:8px; }
+  .progress-fill { height:100%; border-radius:99px; transition:width .6s cubic-bezier(.4,0,.2,1); }
+
+  /* MONTH SELECTOR */
+  .month-scroll { display:flex; gap:8px; padding:0 16px 16px; overflow-x:auto; scrollbar-width:none; }
+  .month-scroll::-webkit-scrollbar { display:none; }
+  .month-pill { flex-shrink:0; padding:7px 18px; border-radius:99px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-size:.8rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:all .25s; font-family:inherit; }
+  .month-pill.active { background:linear-gradient(135deg,#8b5cf6,#f43f8e); border-color:transparent; color:#fff; box-shadow:0 2px 12px rgba(139,92,246,.4); }
+
+  /* BADGE */
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:99px; font-size:.7rem; font-weight:700; }
+  .badge.green  { background:rgba(6,214,160,.15); color:#06d6a0; border:1px solid rgba(6,214,160,.25); }
+  .badge.red    { background:rgba(255,77,109,.15); color:#ff4d6d; border:1px solid rgba(255,77,109,.25); }
+  .badge.yellow { background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.25); }
+
+  /* CC CARD */
+  .cc-item { display:flex; align-items:center; gap:12px; padding:13px 16px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; }
+  .cc-dot { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:800; flex-shrink:0; text-align:center; line-height:1.1; }
+  .cc-info { flex:1; min-width:0; }
+  .cc-info .name { font-size:.875rem; font-weight:700; }
+  .cc-info .sub { font-size:.75rem; color:var(--muted); margin-top:2px; }
+  .cc-amount { font-weight:800; font-size:.95rem; }
+
+  /* CATEGORY ROW */
+  .cat-item { padding:13px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+  .cat-item:last-child { border-bottom:none; }
+  .cat-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .cat-name { display:flex; align-items:center; gap:8px; font-size:.875rem; font-weight:700; }
+  .cat-emoji { width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .cat-amounts { text-align:right; }
+  .cat-spent { font-size:.9rem; font-weight:800; }
+  .cat-budget { font-size:.7rem; color:var(--muted); }
+
+  /* TRANSACTION */
+  .txn-item { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .txn-item:last-child { border-bottom:none; }
+  .txn-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .txn-info { flex:1; min-width:0; }
+  .txn-info .txn-name { font-size:.875rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .txn-info .txn-meta { font-size:.72rem; color:var(--muted); margin-top:2px; }
+  .txn-amount { font-weight:800; font-size:.9rem; flex-shrink:0; }
+  .txn-amount.neg { color:#fb7185; }
+  .txn-amount.pos { color:#06d6a0; }
+
+  /* FIXED EXPENSES */
+  .fixed-item { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; }
+  .fixed-left { display:flex; align-items:center; gap:10px; }
+  .fixed-icon { width:36px; height:36px; background:linear-gradient(135deg,rgba(56,189,248,.2),rgba(6,214,160,.2)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .fixed-name { font-size:.875rem; font-weight:700; }
+  .fixed-type { font-size:.7rem; color:var(--muted); }
+  .fixed-amt { font-weight:800; font-size:.9rem; color:var(--accent4); }
+
+  /* BUDGET STATUS */
+  .status-banner { border-radius:var(--radius); padding:16px 18px; margin:0 16px 16px; display:flex; align-items:center; gap:14px; }
+  .status-banner.good { background:linear-gradient(135deg,rgba(6,214,160,.18),rgba(16,245,160,.08)); border:1px solid rgba(6,214,160,.35); }
+  .status-banner.warn { background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(251,191,36,.08)); border:1px solid rgba(251,191,36,.35); }
+  .status-banner.bad  { background:linear-gradient(135deg,rgba(255,77,109,.18),rgba(255,77,109,.08)); border:1px solid rgba(255,77,109,.35); }
+  .status-icon { font-size:2.2rem; }
+  .status-text .title { font-weight:800; font-size:.95rem; }
+  .status-text .sub { font-size:.78rem; color:var(--muted); margin-top:3px; }
+
+  /* INCOME ADJUSTMENTS */
+  .adj-item { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+  .adj-item:last-child { border-bottom:none; }
+  .adj-label { font-size:.875rem; font-weight:700; }
+  .adj-meta { font-size:.72rem; color:var(--muted); }
+  .adj-val { font-weight:800; }
+  .adj-val.pos { color:var(--accent3); }
+
+  /* FORMS */
+  .form-group { margin-bottom:14px; }
+  .form-label { font-size:.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; display:block; }
+  .form-input { width:100%; background:var(--bg3); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:11px 14px; color:var(--text); font-family:inherit; font-size:.9rem; outline:none; transition:border-color .2s,box-shadow .2s; }
+  .form-input:focus { border-color:var(--accent1); box-shadow:0 0 0 3px rgba(139,92,246,.15); }
+  select.form-input option { background:var(--bg2); }
+  .btn { width:100%; padding:14px; border-radius:var(--radius-sm); border:none; font-family:inherit; font-size:.9rem; font-weight:800; cursor:pointer; transition:all .2s; }
+  .btn-primary { background:linear-gradient(135deg,#8b5cf6,#f43f8e); color:#fff; box-shadow:0 4px 15px rgba(139,92,246,.3); }
+  .btn-primary:active { transform:scale(.97); box-shadow:none; }
+  .btn-secondary { background:var(--bg3); color:var(--text); border:1.5px solid var(--border); margin-top:8px; }
+  .btn-secondary:active { transform:scale(.97); }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(10px); z-index:200; display:none; align-items:flex-end; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:linear-gradient(180deg,#14152a,#0f1018); border-radius:28px 28px 0 0; border-top:1px solid rgba(255,255,255,.1); padding:20px; width:100%; max-height:92vh; overflow-y:auto; padding-bottom:env(safe-area-inset-bottom,20px); animation:slideUp .3s cubic-bezier(.4,0,.2,1); }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-handle { width:44px; height:5px; background:rgba(255,255,255,.15); border-radius:99px; margin:0 auto 20px; }
+  .modal h2 { font-size:1.25rem; font-weight:800; margin-bottom:16px; }
+  .modal-close { position:absolute; top:20px; right:20px; background:var(--bg3); border:none; color:var(--muted); font-size:1.2rem; width:32px; height:32px; border-radius:50%; cursor:pointer; }
+
+  /* RECEIPT */
+  .receipt-items { margin-top:12px; }
+  .receipt-item-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; background:var(--bg3); border-radius:10px; padding:8px 12px; }
+
+  /* CHART CONTAINER */
+  .chart-wrap { padding:0 16px 16px; }
+  .chart-box { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
+  canvas { max-height:220px; }
+
+  /* PAYCHECK LIST */
+  .paycheck-item { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border); }
+  .paycheck-item:last-child { border-bottom:none; }
+
+  /* TOAST */
+  #toast { position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#8b5cf6,#f43f8e); color:#fff; padding:11px 22px; border-radius:99px; font-size:.85rem; font-weight:700; z-index:500; opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap; box-shadow:0 4px 20px rgba(139,92,246,.4); }
+  #toast.show { opacity:1; }
+
+  /* GRADIENT TEXT */
+  .grad { background:linear-gradient(135deg,#8b5cf6,#f43f8e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+  /* MISC */
+  .month-summary { padding:0 16px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .month-summary .month-name { font-size:1.1rem; font-weight:800; }
+  .divider { height:1px; background:var(--border); margin:0 16px 16px; }
+  .page { padding-top: env(safe-area-inset-top, 0); }
+
+  @media (min-width:430px) {
+    .stats-grid { max-width:400px; margin:auto; }
+    .section, .chart-wrap, .month-scroll, .status-banner { max-width:430px; margin-left:auto; margin-right:auto; }
+  }
+</style>
+
+</head>
+<body>
+
+<div id="splash">
+  <div class="logo">💰 BudgetPro</div>
+  <p>Your 2026 financial dashboard</p>
+</div>
+
+<!-- PAGES -->
+<div id="page-home" class="page active">
+  <div class="page-header">
+    <h1>Dashboard <span class="grad">2026</span></h1>
+    <p>Welcome back! Here's your financial overview.</p>
+  </div>
+
+  <div class="month-scroll" id="monthPills"></div>
+
+  <div id="statusBanner"></div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="chart-wrap">
+    <div class="section-title" style="padding:0 4px 10px">Income vs Expenses</div>
+    <div class="chart-box"><canvas id="overviewChart"></canvas></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Spending by Category</div>
+    <div class="chart-box"><canvas id="catChart"></canvas></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Budget Status — <span id="curMonthLabel"></span></div>
+    <div id="catProgress"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🏦 Marcus Savings Goal</div>
+    <div id="savingsTracker"></div>
+  </div>
+</div>
+
+<div id="page-cards" class="page">
+  <div class="page-header">
+    <h1>Credit Cards</h1>
+    <p>Spending by card this month</p>
+  </div>
+  <div class="section">
+    <div class="section-title">Monthly Card Totals</div>
+    <div id="ccList"></div>
+  </div>
+  <div class="chart-wrap">
+    <div class="section-title" style="padding:0 4px 10px">Card Comparison</div>
+    <div class="chart-box"><canvas id="ccChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Year-to-Date by Card</div>
+    <div id="ccYTD"></div>
+  </div>
+</div>
+
+<div id="page-transactions" class="page">
+  <div class="page-header">
+    <h1>Transactions</h1>
+    <p>Add & manage your spending</p>
+  </div>
+  <div class="section" style="padding-bottom:8px">
+    <button class="btn btn-primary" onclick="openAddTxnModal()">＋ Add Transaction</button>
+  </div>
+  <div class="section">
+    <div class="section-title">Recent Transactions</div>
+    <div id="txnList" class="card" style="padding:4px 12px;"></div>
+  </div>
+</div>
+
+<div id="page-income" class="page">
+  <div class="page-header">
+    <h1>Income</h1>
+    <p>Paychecks & adjustments</p>
+  </div>
+  <div class="section" style="padding-bottom:8px">
+    <button class="btn btn-primary" onclick="openModal('addIncomeModal')">＋ Add Income / Adjustment</button>
+  </div>
+  <div class="stats-grid" id="incomeStats"></div>
+  <div class="section">
+    <div class="section-title">Paycheck History 2026</div>
+    <div class="card" id="paycheckList" style="padding:4px 12px;"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Adjustments & Extras</div>
+    <div class="card" id="adjList" style="padding:4px 12px;"></div>
+  </div>
+</div>
+
+<div id="page-fixed" class="page">
+  <div class="page-header">
+    <h1>Fixed Expenses</h1>
+    <p id="fixedSubtitle">Your recurring monthly bills</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card expense">
+      <div class="label" id="fixedStatLabel">Actual Paid</div>
+      <div class="value" id="fixedTotalStat">$2,154</div>
+    </div>
+    <div class="stat-card savings">
+      <div class="label">Set Budget</div>
+      <div class="value" id="fixedBudgetStat">$2,780</div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title" id="fixedListTitle">All Fixed Bills</div>
+    <div id="fixedList"></div>
+  </div>
+  <div class="section">
+    <button class="btn btn-secondary" onclick="openModal('addFixedModal')">＋ Add Fixed Expense</button>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="addTxnModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>＋ Add Transactions</h2>
+
+    <!-- Shared fields -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div style="flex:1">
+        <label class="form-label">Date</label>
+        <input class="form-input" id="txnDate" type="date">
+      </div>
+      <div style="flex:1">
+        <label class="form-label">Card</label>
+        <select class="form-input" id="txnCard"></select>
+      </div>
+    </div>
+
+    <!-- Item rows -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <label class="form-label" style="margin:0">Items</label>
+      <button onclick="addTxnRow()" style="background:var(--accent1);color:#fff;border:none;border-radius:8px;padding:5px 14px;font-size:.8rem;font-weight:700;font-family:inherit;cursor:pointer">+ Add Row</button>
+    </div>
+    <div id="txnRows" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+
+    <!-- Running total -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:14px">
+      <span style="font-size:.85rem;color:var(--muted);font-weight:600">Total</span>
+      <span id="txnRunningTotal" style="font-size:1.1rem;font-weight:800;color:var(--accent2)">$0.00</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveAllTxnRows()">💾 Save All</button>
+    <button class="btn btn-secondary" onclick="closeModal('addTxnModal')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addIncomeModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Add Income / Adjustment</h2>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select class="form-input" id="incType">
+        <option value="paycheck">Paycheck</option>
+        <option value="cashback">Cash Back Reward</option>
+        <option value="transfer">Money from Someone</option>
+        <option value="other">Other Income</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount ($)</label>
+      <input class="form-input" id="incAmt" type="number" placeholder="0.00" step="0.01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="incDate" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <input class="form-input" id="incNote" placeholder="e.g. Chase Sapphire cash back">
+    </div>
+    <button class="btn btn-primary" onclick="addIncome()">Save</button>
+    <button class="btn btn-secondary" onclick="closeModal('addIncomeModal')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addFixedModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Add Fixed Expense</h2>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="fixedName" placeholder="e.g. Netflix">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monthly Amount ($)</label>
+      <input class="form-input" id="fixedAmt" type="number" placeholder="0.00" step="0.01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Icon (emoji)</label>
+      <input class="form-input" id="fixedIcon" placeholder="🏠" maxlength="2">
+    </div>
+    <button class="btn btn-primary" onclick="addFixed()">Save</button>
+    <button class="btn btn-secondary" onclick="closeModal('addFixedModal')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="scanModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>🧾 Log Receipt</h2>
+
+    <!-- Store name + date -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="flex:1">
+        <label class="form-label">Store / Merchant</label>
+        <input class="form-input" id="receiptStore" placeholder="e.g. Publix">
+      </div>
+      <div style="flex:1">
+        <label class="form-label">Date</label>
+        <input class="form-input" id="receiptDate" type="date">
+      </div>
+    </div>
+
+    <!-- Card selector -->
+    <div class="form-group">
+      <label class="form-label">Paid with</label>
+      <select class="form-input" id="receiptCard"></select>
+    </div>
+
+    <!-- Line items -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <label class="form-label" style="margin:0">Receipt Items</label>
+      <button onclick="addReceiptRow()" style="background:var(--accent1);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:.8rem;font-weight:700;font-family:inherit;cursor:pointer">+ Add Item</button>
+    </div>
+
+    <div id="receiptRowsWrap" style="max-height:280px;overflow-y:auto;margin-bottom:10px">
+      <div id="receiptRows"></div>
+    </div>
+
+    <!-- Running total -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:14px">
+      <span style="font-size:.85rem;color:var(--muted);font-weight:600">Receipt Total</span>
+      <span id="receiptRunningTotal" style="font-size:1.1rem;font-weight:800;color:var(--accent3)">$0.00</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveReceiptItems()">💾 Save All Items</button>
+    <button class="btn btn-secondary" onclick="closeModal('scanModal')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editCatModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 id="editCatTitle" style="margin:0">✏️ Category Breakdown</h2>
+      <button onclick="closeModal('editCatModal')" style="background:rgba(255,255,255,.1);border:none;color:var(--text);font-size:1.1rem;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+    <input type="hidden" id="editCatId">
+
+    <!-- Summary bar -->
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:.72rem;color:var(--muted)">Spent</div>
+        <div id="editCatSpent" style="font-weight:800;font-size:1.1rem"></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.72rem;color:var(--muted)">Budget</div>
+        <div id="editCatCurrentBudget" style="font-weight:700;font-size:1.1rem;color:var(--accent4)"></div>
+      </div>
+    </div>
+
+    <!-- Budget edit -->
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px">
+      <div style="flex:1">
+        <label class="form-label">Monthly Budget</label>
+        <input class="form-input" id="editCatBudget" type="number" placeholder="0.00" step="0.01">
+      </div>
+      <button onclick="saveEditCatBudget()" style="background:var(--accent1);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 16px;font-size:.8rem;font-weight:700;font-family:inherit;cursor:pointer;flex-shrink:0">Update</button>
+    </div>
+
+    <!-- Charges breakdown -->
+    <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">All Charges This Month</div>
+    <div id="editCatTxnList" style="max-height:240px;overflow-y:auto;border-radius:var(--radius-sm);background:var(--bg3);padding:4px 12px;margin-bottom:14px"></div>
+
+    <button class="btn btn-secondary" onclick="closeModal('editCatModal')">✕ Close</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editTxnModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>✏️ Edit Transaction</h2>
+    <input type="hidden" id="editTxnId">
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input class="form-input" id="editTxnName" placeholder="e.g. Publix groceries">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount ($)</label>
+      <input class="form-input" id="editTxnAmt" type="number" placeholder="0.00" step="0.01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-input" id="editTxnCat"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Credit Card</label>
+      <select class="form-input" id="editTxnCard"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="editTxnDate" type="date">
+    </div>
+    <button class="btn btn-primary" onclick="saveEditTxn()">Save Changes</button>
+    <button class="btn btn-secondary" onclick="closeModal('editTxnModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- Income Breakdown Modal (from Dashboard) -->
+<div class="modal-overlay" id="incomeBreakdownModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 id="incomeBreakdownTitle" style="margin:0">💰 Income Breakdown</h2>
+      <button onclick="closeModal('incomeBreakdownModal')" style="background:rgba(255,255,255,.1);border:none;color:var(--text);font-size:1.1rem;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+
+    <!-- Target + actual summary -->
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:.78rem;color:var(--muted);font-weight:600">MONTHLY TARGET</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="incomeTargetInput" type="number" step="0.01"
+            style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;color:var(--accent4);font-weight:800;font-size:.95rem;width:110px;font-family:inherit;text-align:right"
+            onchange="saveIncomeTarget()">
+          <span style="font-size:.7rem;color:var(--muted)">tap to edit</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:.78rem;color:var(--muted)">Paychecks</span>
+        <span id="ibPaycheckTotal" style="font-weight:700;color:var(--accent3)"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:.78rem;color:var(--muted)">Cash Back / Rewards</span>
+        <span id="ibCashbackTotal" style="font-weight:700;color:var(--accent4)"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:.78rem;color:var(--muted)">Transfers / Other</span>
+        <span id="ibOtherTotal" style="font-weight:700;color:var(--accent5)"></span>
+      </div>
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:.85rem;font-weight:700">Total Income</span>
+        <span id="ibGrandTotal" style="font-weight:800;font-size:1rem;color:var(--accent3)"></span>
+      </div>
+    </div>
+
+    <!-- Over-target callout -->
+    <div id="ibOverTarget" style="display:none;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px"></div>
+
+    <!-- Paychecks section -->
+    <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Paychecks</div>
+    <div id="ibPaycheckList" style="background:var(--bg3);border-radius:var(--radius-sm);padding:4px 12px;margin-bottom:12px;max-height:200px;overflow-y:auto"></div>
+
+    <!-- Extras section -->
+    <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Cash Back, Rewards & Transfers</div>
+    <div id="ibExtraList" style="background:var(--bg3);border-radius:var(--radius-sm);padding:4px 12px;margin-bottom:14px;max-height:160px;overflow-y:auto"></div>
+
+    <button class="btn btn-primary" onclick="closeModal('incomeBreakdownModal');openModal('addIncomeModal')">＋ Add Income Entry</button>
+    <button class="btn btn-secondary" onclick="closeModal('incomeBreakdownModal')">Done</button>
+  </div>
+</div>
+
+<!-- Expense Breakdown Modal (from Dashboard) -->
+<div class="modal-overlay" id="expenseBreakdownModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 id="expenseBreakdownTitle" style="margin:0">💸 Expenses</h2>
+      <button onclick="closeModal('expenseBreakdownModal')" style="background:rgba(255,255,255,.1);border:none;color:var(--text);font-size:1.1rem;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+
+    <!-- Summary -->
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:.78rem;color:var(--muted)">Total Expenses</span>
+        <span id="ebTotal" style="font-weight:800;font-size:1rem;color:#ffb3d1"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:.78rem;color:var(--muted)">Fixed Expenses</span>
+        <span id="ebFixed" style="font-weight:700;color:var(--accent5)"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:.78rem;color:var(--muted)">Variable Spending</span>
+        <span id="ebVariable" style="font-weight:700;color:var(--accent2)"></span>
+      </div>
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:.78rem;color:var(--muted)">% of Income</span>
+        <span id="ebPct" style="font-weight:800"></span>
+      </div>
+    </div>
+
+    <!-- Category breakdown -->
+    <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">By Category</div>
+    <div id="ebCatList" style="max-height:240px;overflow-y:auto;border-radius:var(--radius-sm);background:var(--bg3);padding:8px 12px;margin-bottom:14px"></div>
+
+    <!-- Fixed breakdown -->
+    <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Fixed Bills</div>
+    <div id="ebFixedList" style="max-height:200px;overflow-y:auto;border-radius:var(--radius-sm);background:var(--bg3);padding:8px 12px;margin-bottom:14px"></div>
+
+    <button class="btn btn-secondary" onclick="closeModal('expenseBreakdownModal')">✕ Close</button>
+  </div>
+</div>
+
+<!-- Mark as Paid Modal -->
+<div class="modal-overlay" id="markPaidModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="markPaidTitle">💳 Mark as Paid</h2>
+    <input type="hidden" id="markPaidBillName">
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between">
+      <span style="font-size:.8rem;color:var(--muted)">Set amount</span>
+      <span id="markPaidSetAmt" style="font-weight:700;color:var(--accent4)"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount Actually Paid ($)</label>
+      <input class="form-input" id="markPaidAmt" type="number" placeholder="0.00" step="0.01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date Paid</label>
+      <input class="form-input" id="markPaidDate" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Paid With</label>
+      <select class="form-input" id="markPaidCard"></select>
+    </div>
+    <button class="btn btn-primary" onclick="saveMarkPaid()">💾 Save Payment</button>
+    <button class="btn btn-secondary" id="markPaidDeleteBtn" onclick="" style="display:none;background:rgba(255,82,82,.1);color:var(--red);border-color:rgba(255,82,82,.2)">🗑 Remove Payment</button>
+    <button class="btn btn-secondary" onclick="closeModal('markPaidModal')" style="margin-top:6px">Cancel</button>
+  </div>
+</div>
+
+<!-- Card Breakdown Modal -->
+<div class="modal-overlay" id="cardBreakdownModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 id="cardBreakdownTitle" style="margin:0">💳 Card Breakdown</h2>
+      <button onclick="closeModal('cardBreakdownModal')" style="background:rgba(255,255,255,.1);border:none;color:var(--text);font-size:1.1rem;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:.72rem;color:var(--muted)">Total Spent</div><div id="cardBreakdownTotal" style="font-weight:800;font-size:1.1rem;color:var(--accent2)"></div></div>
+      <div style="text-align:right"><div style="font-size:.72rem;color:var(--muted)">Transactions</div><div id="cardBreakdownCount" style="font-weight:700;font-size:1.1rem"></div></div>
+    </div>
+    <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">All Charges</div>
+    <div id="cardBreakdownList" style="max-height:280px;overflow-y:auto;border-radius:var(--radius-sm);background:var(--bg3);padding:4px 12px;margin-bottom:14px"></div>
+    <button class="btn btn-secondary" onclick="closeModal('cardBreakdownModal')">✕ Close</button>
+  </div>
+</div>
+
+<!-- Income Edit Modal -->
+<div class="modal-overlay" id="editIncomeModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>✏️ Edit Income Entry</h2>
+    <input type="hidden" id="editIncId">
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select class="form-input" id="editIncType">
+        <option value="paycheck">Paycheck</option>
+        <option value="cashback">Cash Back Reward</option>
+        <option value="transfer">Money from Someone</option>
+        <option value="other">Other Income</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount ($)</label>
+      <input class="form-input" id="editIncAmt" type="number" placeholder="0.00" step="0.01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="editIncDate" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note</label>
+      <input class="form-input" id="editIncNote" placeholder="Optional note">
+    </div>
+    <button class="btn btn-primary" onclick="saveEditIncome()">Save Changes</button>
+    <button class="btn btn-secondary" onclick="closeModal('editIncomeModal')">Cancel</button>
+  </div>
+</div>
+
+<div id="page-settings" class="page">
+  <div class="page-header">
+    <h1>⚙️ Settings</h1>
+    <p>Backup, restore & manage your app</p>
+  </div>
+
+  <!-- BACKUP & RESTORE -->
+  <div class="section">
+    <div class="section-title">💾 Data Backup</div>
+    <div class="card" style="padding:18px">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Export your data before every app update. Import it after uploading the new version to restore everything instantly.</p>
+
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">What gets saved</div>
+        <div style="font-size:.82rem;color:var(--text);line-height:1.8">
+          ✅ All transactions<br>
+          ✅ All income & paychecks<br>
+          ✅ Fixed expense payments<br>
+          ✅ Category budgets<br>
+          ✅ Income target<br>
+          ✅ Fixed bill amounts
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="exportData()" style="margin-bottom:8px">📤 Export My Data</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import Backup</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+
+  <!-- QUICK LINKS -->
+  <div class="section">
+    <div class="section-title">Quick Access</div>
+    <div onclick="showPage('fixed', document.querySelectorAll('.nav-btn')[4])" class="fixed-item" style="cursor:pointer">
+      <div class="fixed-left">
+        <div class="fixed-icon">🏠</div>
+        <div><div class="fixed-name">Fixed Expenses</div><div class="fixed-type">Manage your recurring bills</div></div>
+      </div>
+      <span style="color:var(--muted);font-size:.8rem">View ›</span>
+    </div>
+  </div>
+
+  <!-- DATA STATS -->
+  <div class="section">
+    <div class="section-title">Data Overview</div>
+    <div class="card" style="padding:14px 16px" id="dataStats"></div>
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="section">
+    <div class="section-title" style="color:var(--red)">⚠️ Danger Zone</div>
+    <div class="card" style="padding:16px;border-color:rgba(255,77,109,.2)">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">This will delete ALL your manually added transactions and income entries. Seed data will be restored. Export a backup first!</p>
+      <button onclick="resetUserData()" style="width:100%;padding:12px;border-radius:var(--radius-sm);border:1px solid rgba(255,77,109,.3);background:rgba(255,77,109,.1);color:var(--red);font-family:inherit;font-size:.875rem;font-weight:700;cursor:pointer">🗑 Reset User Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="nav">
+  <button class="nav-btn active" onclick="showPage('home',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </button>
+  <button class="nav-btn" onclick="showPage('cards',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Cards
+  </button>
+  <button class="nav-btn" onclick="showPage('transactions',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Log
+  </button>
+  <button class="nav-btn" onclick="showPage('income',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    Income
+  </button>
+  <button class="nav-btn" onclick="showPage('fixed',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+    Fixed
+  </button>
+  <button class="nav-btn" onclick="showPage('settings',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// DATA — pre-loaded from 2026 Budget Sheet
+// ============================================================
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const CATEGORIES = [
+  {id:'shopping', name:'Shopping', emoji:'🛍️', budget:300, color:'#7c6bff'},
+  {id:'food', name:'Food & Drink', emoji:'🍔', budget:575, color:'#ff6b9d'},
+  {id:'groceries', name:'Groceries', emoji:'🛒', budget:470, color:'#00d4aa'},
+  {id:'gas', name:'Gas', emoji:'⛽', budget:200, color:'#ffaa3b'},
+  {id:'entertainment', name:'Entertainment', emoji:'🎬', budget:110, color:'#4fc3f7'},
+  {id:'travel', name:'Travel', emoji:'✈️', budget:10, color:'#ff7043'},
+  {id:'services', name:'Services', emoji:'⚙️', budget:80, budgetByMonth:{Jul:79.85,Aug:79.85,Sep:79.85,Oct:79.85,Nov:79.85,Dec:79.85}, color:'#ab47bc'},
+  {id:'fixed', name:'Fixed Expenses', emoji:'🏠', budget:2154.88, color:'#66bb6a'},
+];
+
+function getCatBudget(cat, month) {
+  // Check per-month user override first
+  if(state.monthBudgets && state.monthBudgets[month] && state.monthBudgets[month][cat.id] !== undefined) {
+    return state.monthBudgets[month][cat.id];
+  }
+  // Then check category-level month override (e.g. services Jul-Dec = $79.85)
+  if(cat.budgetByMonth && cat.budgetByMonth[month] !== undefined) return cat.budgetByMonth[month];
+  return cat.budget;
+}
+
+const CARDS = [
+  {id:'usbank', name:'US Bank', color:'#e53935', bg:'rgba(229,57,53,.15)'},
+  {id:'chase', name:'Chase', color:'#1565c0', bg:'rgba(21,101,192,.15)'},
+  {id:'citi', name:'Citi', color:'#00838f', bg:'rgba(0,131,143,.15)'},
+  {id:'debit', name:'Debit/Discover', color:'#ff6b9d', bg:'rgba(255,107,157,.15)'},
+  {id:'bilt', name:'BILT', color:'#7c6bff', bg:'rgba(124,107,255,.15)'},
+  {id:'discover', name:'Discover', color:'#ff8f00', bg:'rgba(255,143,0,.15)'},
+  {id:'discoverit', name:'Discover IT', color:'#f9a825', bg:'rgba(249,168,37,.15)'},
+  {id:'wellsfargo', name:'Wells Fargo Autograph', color:'#c62828', bg:'rgba(198,40,40,.15)'},
+];
+
+const FIXED_EXPENSES = [
+  {name:'Rent', amount:1710.00, icon:'🏠', type:'Fixed'},
+  {name:'Car Insurance', amount:137.05, icon:'🚗', type:'Fixed'},
+  {name:'Electricity', amount:92.00, icon:'⚡', type:'Fixed'},
+  {name:'Water', amount:64.00, icon:'💧', type:'Fixed'},
+  {name:'Cricket (Phone)', amount:90.00, icon:'📱', type:'Fixed'},
+  {name:'Internet', amount:34.99, icon:'🌐', type:'Fixed'},
+  {name:'Claude', amount:17.00, icon:'🤖', type:'Fixed'},
+  {name:'Marcus Savings', amount:625.00, icon:'🏦', type:'Savings Goal'},
+];
+
+// Historical monthly data — updated to include car insurance in all months
+const MONTHLY_DATA = {
+  Jan: { income:6372.92, expense:4887.85 },
+  Feb: { income:4920.88, expense:4432.77 },
+  Mar: { income:4320.60, expense:4542.01 },
+  Apr: { income:4726.68, expense:4729.27 },
+  May: { income:4838.78, expense:4810.67 },
+  Jun: { income:3650.44, expense:716.95  },
+};
+
+// Seed paychecks
+const SEED_PAYCHECKS = [
+  {id:'p1', date:'2026-01-02', amount:2041.55, type:'paycheck', note:'', month:'Jan'},
+  {id:'p2', date:'2026-01-19', amount:2041.56, type:'paycheck', note:'', month:'Jan'},
+  {id:'p3', date:'2026-01-31', amount:2134.56, type:'paycheck', note:'', month:'Jan'},
+  {id:'p4', date:'2026-02-14', amount:2096.24, type:'paycheck', note:'', month:'Feb'},
+  {id:'p5', date:'2026-02-28', amount:2096.26, type:'paycheck', note:'', month:'Feb'},
+  {id:'p6', date:'2026-03-14', amount:2096.26, type:'paycheck', note:'', month:'Mar'},
+  {id:'p7', date:'2026-03-28', amount:2096.26, type:'paycheck', note:'', month:'Mar'},
+  {id:'p8', date:'2026-04-11', amount:2096.26, type:'paycheck', note:'', month:'Apr'},
+  {id:'p9', date:'2026-04-25', amount:2096.25, type:'paycheck', note:'', month:'Apr'},
+  {id:'p10',date:'2026-05-09', amount:2096.27, type:'paycheck', note:'', month:'May'},
+  {id:'p11',date:'2026-05-23', amount:2096.24, type:'paycheck', note:'', month:'May'},
+  {id:'p12',date:'2026-06-06', amount:2096.26, type:'paycheck', note:'', month:'Jun'},
+  // Extra income adjustments to match sheet totals exactly
+  {id:'adj_jan', date:'2026-01-31', amount:155.25,  type:'other', note:'Additional Jan income', month:'Jan'},
+  {id:'adj_feb', date:'2026-02-28', amount:728.38,  type:'other', note:'Additional Feb income', month:'Feb'},
+  {id:'adj_mar', date:'2026-03-31', amount:128.08,  type:'other', note:'Additional Mar income', month:'Mar'},
+  {id:'adj_apr', date:'2026-04-30', amount:534.17,  type:'other', note:'Additional Apr income', month:'Apr'},
+  {id:'adj_may', date:'2026-05-31', amount:646.27,  type:'other', note:'Additional May income', month:'May'},
+  {id:'adj_jun', date:'2026-06-20', amount:1457.92, type:'other', note:'Additional Jun income', month:'Jun'},
+];
+
+// Full historical transactions seeded from Google Sheet — variable spending only (no fixed, handled by SEED_FIXED_PAYMENTS)
+const SEED_TRANSACTIONS = [
+  // ── JANUARY ──
+  {id:'h_jan_1',  name:'US Bank — Food & Drink',        amount:85.00,   cat:'food',          card:'usbank',     date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_3',  name:'Chase — Food & Drink',          amount:496.12,  cat:'food',          card:'chase',      date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_4',  name:'Citi — Shopping',               amount:438.54,  cat:'shopping',      card:'citi',       date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_5',  name:'Citi — Food & Drink',           amount:45.39,   cat:'food',          card:'citi',       date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_6',  name:'Citi — Groceries',              amount:126.07,  cat:'groceries',     card:'citi',       date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_7',  name:'Debit — Entertainment',         amount:40.00,   cat:'entertainment', card:'debit',      date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_8',  name:'Debit — Services',              amount:34.99,   cat:'services',      card:'debit',      date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_10', name:'BILT — Food & Drink',           amount:2.65,    cat:'food',          card:'bilt',       date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_11', name:'Discover — Gas',                amount:181.71,  cat:'gas',           card:'discover',   date:'2026-01-31', month:'Jan'},
+  {id:'h_jan_12', name:'Discover IT — Groceries',       amount:363.16,  cat:'groceries',     card:'discoverit', date:'2026-01-31', month:'Jan'},
+
+  // ── FEBRUARY ──
+  {id:'h_feb_1',  name:'US Bank — Food & Drink',        amount:24.47,   cat:'food',          card:'usbank',     date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_3',  name:'Chase — Food & Drink',          amount:399.83,  cat:'food',          card:'chase',      date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_4',  name:'Citi — Shopping',               amount:42.84,   cat:'shopping',      card:'citi',       date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_5',  name:'Citi — Food & Drink',           amount:16.85,   cat:'food',          card:'citi',       date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_6',  name:'Citi — Groceries',              amount:99.55,   cat:'groceries',     card:'citi',       date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_7',  name:'Citi — Entertainment',          amount:223.71,  cat:'entertainment', card:'citi',       date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_8',  name:'Debit — Food & Drink',          amount:1.17,    cat:'food',          card:'debit',      date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_9',  name:'Debit — Services',              amount:15.00,   cat:'services',      card:'debit',      date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_11', name:'BILT — Food & Drink',           amount:2.55,    cat:'food',          card:'bilt',       date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_12', name:'BILT — Services',               amount:12.55,   cat:'services',      card:'bilt',       date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_13', name:'Discover — Gas',                amount:31.99,   cat:'gas',           card:'discover',   date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_14', name:'Discover IT — Shopping',        amount:230.94,  cat:'shopping',      card:'discoverit', date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_15', name:'Discover IT — Food & Drink',    amount:1.61,    cat:'food',          card:'discoverit', date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_16', name:'Discover IT — Groceries',       amount:415.50,  cat:'groceries',     card:'discoverit', date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_17', name:'Wells Fargo — Groceries',       amount:12.66,   cat:'groceries',     card:'wellsfargo', date:'2026-02-28', month:'Feb'},
+  {id:'h_feb_18', name:'Wells Fargo — Gas',             amount:159.67,  cat:'gas',           card:'wellsfargo', date:'2026-02-28', month:'Feb'},
+
+  // ── MARCH ──
+  {id:'h_mar_2',  name:'Chase — Food & Drink',          amount:552.85,  cat:'food',          card:'chase',      date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_3',  name:'Citi — Shopping',               amount:246.36,  cat:'shopping',      card:'citi',       date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_4',  name:'Citi — Groceries',              amount:120.18,  cat:'groceries',     card:'citi',       date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_5',  name:'Citi — Services',               amount:50.68,   cat:'services',      card:'citi',       date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_6',  name:'Debit — Shopping',              amount:25.00,   cat:'shopping',      card:'debit',      date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_7',  name:'Debit — Food & Drink',          amount:35.00,   cat:'food',          card:'debit',      date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_9',  name:'BILT — Shopping',               amount:14.78,   cat:'shopping',      card:'bilt',       date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_10', name:'BILT — Food & Drink',           amount:29.82,   cat:'food',          card:'bilt',       date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_11', name:'Discover — Food & Drink',       amount:7.51,    cat:'food',          card:'discover',   date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_12', name:'Discover IT — Groceries',       amount:400.90,  cat:'groceries',     card:'discoverit', date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_13', name:'Wells Fargo — Food & Drink',    amount:46.89,   cat:'food',          card:'wellsfargo', date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_14', name:'Wells Fargo — Groceries',       amount:67.48,   cat:'groceries',     card:'wellsfargo', date:'2026-03-31', month:'Mar'},
+  {id:'h_mar_15', name:'Wells Fargo — Gas',             amount:203.48,  cat:'gas',           card:'wellsfargo', date:'2026-03-31', month:'Mar'},
+
+  // ── APRIL ──
+  {id:'h_apr_1',  name:'US Bank — Food & Drink',        amount:170.46,  cat:'food',          card:'usbank',     date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_3',  name:'Chase — Shopping',              amount:14.97,   cat:'shopping',      card:'chase',      date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_4',  name:'Chase — Food & Drink',          amount:19.35,   cat:'food',          card:'chase',      date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_5',  name:'Citi — Shopping',               amount:166.41,  cat:'shopping',      card:'citi',       date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_6',  name:'Citi — Food & Drink',           amount:22.60,   cat:'food',          card:'citi',       date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_7',  name:'Citi — Groceries',              amount:358.03,  cat:'groceries',     card:'citi',       date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_8',  name:'Citi — Services',               amount:173.35,  cat:'services',      card:'citi',       date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_9',  name:'Debit — Entertainment',         amount:80.00,   cat:'entertainment', card:'debit',      date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_11', name:'BILT — Shopping',               amount:4.30,    cat:'shopping',      card:'bilt',       date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_12', name:'BILT — Groceries',              amount:24.80,   cat:'groceries',     card:'bilt',       date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_13', name:'BILT — Entertainment',          amount:51.49,   cat:'entertainment', card:'bilt',       date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_14', name:'Discover — Shopping',           amount:22.98,   cat:'shopping',      card:'discover',   date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_15', name:'Discover — Groceries',          amount:114.05,  cat:'groceries',     card:'discover',   date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_16', name:'Discover IT — Food & Drink',    amount:389.70,  cat:'food',          card:'discoverit', date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_17', name:'Discover IT — Groceries',       amount:35.15,   cat:'groceries',     card:'discoverit', date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_18', name:'Wells Fargo — Food & Drink',    amount:17.58,   cat:'food',          card:'wellsfargo', date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_19', name:'Wells Fargo — Gas',             amount:274.77,  cat:'gas',           card:'wellsfargo', date:'2026-04-30', month:'Apr'},
+  {id:'h_apr_20', name:'Wells Fargo — Services',        amount:30.49,   cat:'services',      card:'wellsfargo', date:'2026-04-30', month:'Apr'},
+
+  // ── MAY ──
+  {id:'h_may_1',  name:'US Bank — Food & Drink',        amount:214.92,  cat:'food',          card:'usbank',     date:'2026-05-31', month:'May'},
+  {id:'h_may_3',  name:'Chase — Shopping',              amount:59.54,   cat:'shopping',      card:'chase',      date:'2026-05-31', month:'May'},
+  {id:'h_may_4',  name:'Chase — Food & Drink',          amount:49.20,   cat:'food',          card:'chase',      date:'2026-05-31', month:'May'},
+  {id:'h_may_5',  name:'Chase — Groceries',             amount:22.11,   cat:'groceries',     card:'chase',      date:'2026-05-31', month:'May'},
+  {id:'h_may_6',  name:'Citi — Shopping',               amount:223.70,  cat:'shopping',      card:'citi',       date:'2026-05-31', month:'May'},
+  {id:'h_may_7',  name:'Citi — Food & Drink',           amount:15.86,   cat:'food',          card:'citi',       date:'2026-05-31', month:'May'},
+  {id:'h_may_8',  name:'Citi — Groceries',              amount:463.90,  cat:'groceries',     card:'citi',       date:'2026-05-31', month:'May'},
+  {id:'h_may_9',  name:'Citi — Services',               amount:117.07,  cat:'services',      card:'citi',       date:'2026-05-31', month:'May'},
+  {id:'h_may_11', name:'BILT — Food & Drink',           amount:108.45,  cat:'food',          card:'bilt',       date:'2026-05-31', month:'May'},
+  {id:'h_may_12', name:'Discover — Food & Drink',       amount:7.34,    cat:'food',          card:'discover',   date:'2026-05-31', month:'May'},
+  {id:'h_may_13', name:'Discover IT — Food & Drink',    amount:412.16,  cat:'food',          card:'discoverit', date:'2026-05-31', month:'May'},
+  {id:'h_may_14', name:'Discover IT — Groceries',       amount:21.55,   cat:'groceries',     card:'discoverit', date:'2026-05-31', month:'May'},
+  {id:'h_may_15', name:'Wells Fargo — Gas',             amount:334.29,  cat:'gas',           card:'wellsfargo', date:'2026-05-31', month:'May'},
+
+  // ── JUNE ──
+  {id:'h_jun_1',  name:'US Bank — Shopping',            amount:154.08,  cat:'shopping',      card:'usbank',     date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_1b', name:'US Bank — Food & Drink',        amount:18.44,   cat:'food',          card:'usbank',     date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_2',  name:'Chase — Shopping',              amount:9.19,    cat:'shopping',      card:'chase',      date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_3',  name:'Chase — Groceries',             amount:59.53,   cat:'groceries',     card:'chase',      date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_4',  name:'Citi — Shopping',               amount:82.39,   cat:'shopping',      card:'citi',       date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_5',  name:'Citi — Food & Drink',           amount:21.57,   cat:'food',          card:'citi',       date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_6',  name:'Citi — Services',               amount:31.52,   cat:'services',      card:'citi',       date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_8',  name:'BILT — Groceries',              amount:26.63,   cat:'groceries',     card:'bilt',       date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_9',  name:'Discover IT — Food & Drink',    amount:26.99,   cat:'food',          card:'discoverit', date:'2026-06-30', month:'Jun'},
+  {id:'h_jun_10', name:'Wells Fargo — Gas',             amount:42.56,   cat:'gas',           card:'wellsfargo', date:'2026-06-30', month:'Jun'},
+];
+
+// App state — everything lives here now, no Google Sheet needed going forward
+let state = JSON.parse(localStorage.getItem('budgetpro2026') || 'null') || {
+  currentMonth: 'Jun',
+  transactions: [...SEED_TRANSACTIONS],
+  incomeAdj: [...SEED_PAYCHECKS],
+  fixedExpenses: [...FIXED_EXPENSES],
+  monthlyOverrides: {}
+};
+
+// ============================================================
+// SAFE MIGRATIONS — see below
+// ============================================================
+const SEED_FIXED_PAYMENTS = [
+  {id:'fx_jan_rent',  name:'Rent',          amount:1710.00, cat:'fixed', card:'debit', date:'2026-01-01', month:'Jan', fixedBill:'Rent'},
+  {id:'fx_jan_elec',  name:'Electricity',   amount:91.68,   cat:'fixed', card:'debit', date:'2026-01-31', month:'Jan', fixedBill:'Electricity'},
+  {id:'fx_jan_water', name:'Water',         amount:64.73,   cat:'fixed', card:'debit', date:'2026-01-31', month:'Jan', fixedBill:'Water'},
+  {id:'fx_jan_phone', name:'Cricket (Phone)',amount:90.00,  cat:'fixed', card:'debit', date:'2026-01-31', month:'Jan', fixedBill:'Cricket (Phone)'},
+  {id:'fx_jan_net',   name:'Internet',      amount:34.99,   cat:'fixed', card:'debit', date:'2026-01-31', month:'Jan', fixedBill:'Internet'},
+  {id:'fx_jan_ins',   name:'Car Insurance', amount:137.05,  cat:'fixed', card:'citi', date:'2026-01-31', month:'Jan', fixedBill:'Car Insurance'},
+  {id:'fx_jan_sav',   name:'Marcus Savings',amount:625.00,  cat:'fixed', card:'debit', date:'2026-01-31', month:'Jan', fixedBill:'Marcus Savings'},
+  {id:'fx_feb_rent',  name:'Rent',          amount:1710.00, cat:'fixed', card:'debit', date:'2026-02-01', month:'Feb', fixedBill:'Rent'},
+  {id:'fx_feb_elec',  name:'Electricity',   amount:80.35,   cat:'fixed', card:'debit', date:'2026-02-28', month:'Feb', fixedBill:'Electricity'},
+  {id:'fx_feb_water', name:'Water',         amount:64.49,   cat:'fixed', card:'debit', date:'2026-02-28', month:'Feb', fixedBill:'Water'},
+  {id:'fx_feb_phone', name:'Cricket (Phone)',amount:90.00,  cat:'fixed', card:'debit', date:'2026-02-28', month:'Feb', fixedBill:'Cricket (Phone)'},
+  {id:'fx_feb_net',   name:'Internet',      amount:34.99,   cat:'fixed', card:'debit', date:'2026-02-28', month:'Feb', fixedBill:'Internet'},
+  {id:'fx_feb_ins',   name:'Car Insurance', amount:137.05,  cat:'fixed', card:'citi', date:'2026-02-28', month:'Feb', fixedBill:'Car Insurance'},
+  {id:'fx_feb_sav',   name:'Marcus Savings',amount:625.00,  cat:'fixed', card:'debit', date:'2026-02-28', month:'Feb', fixedBill:'Marcus Savings'},
+  {id:'fx_mar_rent',  name:'Rent',          amount:1710.00, cat:'fixed', card:'debit', date:'2026-03-01', month:'Mar', fixedBill:'Rent'},
+  {id:'fx_mar_elec',  name:'Electricity',   amount:83.28,   cat:'fixed', card:'debit', date:'2026-03-31', month:'Mar', fixedBill:'Electricity'},
+  {id:'fx_mar_water', name:'Water',         amount:60.76,   cat:'fixed', card:'debit', date:'2026-03-31', month:'Mar', fixedBill:'Water'},
+  {id:'fx_mar_phone', name:'Cricket (Phone)',amount:90.00,  cat:'fixed', card:'debit', date:'2026-03-31', month:'Mar', fixedBill:'Cricket (Phone)'},
+  {id:'fx_mar_net',   name:'Internet',      amount:34.99,   cat:'fixed', card:'debit', date:'2026-03-31', month:'Mar', fixedBill:'Internet'},
+  {id:'fx_mar_ins',   name:'Car Insurance', amount:137.05,  cat:'fixed', card:'citi', date:'2026-03-31', month:'Mar', fixedBill:'Car Insurance'},
+  {id:'fx_mar_sav',   name:'Marcus Savings',amount:625.00,  cat:'fixed', card:'debit', date:'2026-03-31', month:'Mar', fixedBill:'Marcus Savings'},
+  {id:'fx_apr_rent',  name:'Rent',          amount:1710.00, cat:'fixed', card:'debit', date:'2026-04-01', month:'Apr', fixedBill:'Rent'},
+  {id:'fx_apr_elec',  name:'Electricity',   amount:94.16,   cat:'fixed', card:'debit', date:'2026-04-30', month:'Apr', fixedBill:'Electricity'},
+  {id:'fx_apr_water', name:'Water',         amount:67.59,   cat:'fixed', card:'debit', date:'2026-04-30', month:'Apr', fixedBill:'Water'},
+  {id:'fx_apr_phone', name:'Cricket (Phone)',amount:90.00,  cat:'fixed', card:'debit', date:'2026-04-30', month:'Apr', fixedBill:'Cricket (Phone)'},
+  {id:'fx_apr_net',   name:'Internet',      amount:34.99,   cat:'fixed', card:'debit', date:'2026-04-30', month:'Apr', fixedBill:'Internet'},
+  {id:'fx_apr_ins',   name:'Car Insurance', amount:137.05,  cat:'fixed', card:'citi', date:'2026-04-30', month:'Apr', fixedBill:'Car Insurance'},
+  {id:'fx_apr_sav',   name:'Marcus Savings',amount:625.00,  cat:'fixed', card:'debit', date:'2026-04-30', month:'Apr', fixedBill:'Marcus Savings'},
+  {id:'fx_may_rent',  name:'Rent',          amount:1710.00, cat:'fixed', card:'debit', date:'2026-05-01', month:'May', fixedBill:'Rent'},
+  {id:'fx_may_elec',  name:'Electricity',   amount:96.19,   cat:'fixed', card:'debit', date:'2026-05-31', month:'May', fixedBill:'Electricity'},
+  {id:'fx_may_water', name:'Water',         amount:67.35,   cat:'fixed', card:'debit', date:'2026-05-31', month:'May', fixedBill:'Water'},
+  {id:'fx_may_phone', name:'Cricket (Phone)',amount:90.00,  cat:'fixed', card:'debit', date:'2026-05-31', month:'May', fixedBill:'Cricket (Phone)'},
+  {id:'fx_may_net',   name:'Internet',      amount:34.99,   cat:'fixed', card:'debit', date:'2026-05-31', month:'May', fixedBill:'Internet'},
+  {id:'fx_may_ins',   name:'Car Insurance', amount:137.05,  cat:'fixed', card:'citi',  date:'2026-05-31', month:'May', fixedBill:'Car Insurance'},
+  {id:'fx_may_sav',   name:'Marcus Savings',amount:625.00,  cat:'fixed', card:'debit', date:'2026-05-31', month:'May', fixedBill:'Marcus Savings'},
+  {id:'fx_jun_claude',name:'Claude',        amount:17.00,   cat:'fixed', card:'citi',  date:'2026-06-01', month:'Jun', fixedBill:'Claude'},
+  {id:'fx_jun_ins',   name:'Car Insurance', amount:137.05,  cat:'fixed', card:'citi',  date:'2026-06-01', month:'Jun', fixedBill:'Car Insurance'},
+  {id:'fx_jun_phone', name:'Cricket (Phone)',amount:90.00,  cat:'fixed', card:'debit', date:'2026-06-30', month:'Jun', fixedBill:'Cricket (Phone)'},
+  // Jul-Dec car insurance updated to $137.20
+  {id:'fx_jul_ins',   name:'Car Insurance', amount:137.20,  cat:'fixed', card:'citi',  date:'2026-07-01', month:'Jul', fixedBill:'Car Insurance'},
+  {id:'fx_aug_ins',   name:'Car Insurance', amount:137.20,  cat:'fixed', card:'citi',  date:'2026-08-01', month:'Aug', fixedBill:'Car Insurance'},
+  {id:'fx_sep_ins',   name:'Car Insurance', amount:137.20,  cat:'fixed', card:'citi',  date:'2026-09-01', month:'Sep', fixedBill:'Car Insurance'},
+  {id:'fx_oct_ins',   name:'Car Insurance', amount:137.20,  cat:'fixed', card:'citi',  date:'2026-10-01', month:'Oct', fixedBill:'Car Insurance'},
+  {id:'fx_nov_ins',   name:'Car Insurance', amount:137.20,  cat:'fixed', card:'citi',  date:'2026-11-01', month:'Nov', fixedBill:'Car Insurance'},
+  {id:'fx_dec_ins',   name:'Car Insurance', amount:137.20,  cat:'fixed', card:'citi',  date:'2026-12-01', month:'Dec', fixedBill:'Car Insurance'},
+];
+// ============================================================
+// SAFE MIGRATIONS — merges only missing seed entries by ID, never overwrites user data
+// ============================================================
+function mergeSeedById(existing, seeds) {
+  const existingIds = new Set(existing.map(e => String(e.id)));
+  const missing = seeds.filter(s => !existingIds.has(String(s.id)));
+  if(missing.length > 0) {
+    const merged = [...existing, ...missing];
+    return { merged, changed: true };
+  }
+  return { merged: existing, changed: false };
+}
+
+const txnMerge = mergeSeedById(state.transactions, [...SEED_TRANSACTIONS, ...SEED_FIXED_PAYMENTS]);
+if(txnMerge.changed) { state.transactions = txnMerge.merged; save(); }
+
+const incMerge = mergeSeedById(state.incomeAdj, SEED_PAYCHECKS);
+if(incMerge.changed) { state.incomeAdj = incMerge.merged; save(); }
+
+// One-time fix: update car insurance entries from debit to citi card
+state.transactions.forEach(t => {
+  if(t.fixedBill === 'Car Insurance' && t.card === 'debit') t.card = 'citi';
+  // Fix June Discover IT moved from groceries to food
+  if(t.id === 'h_jun_9' && t.cat === 'groceries') t.cat = 'food';
+});
+save();
+
+// One-time fix: remove duplicate h_ fixed entries that caused double-counting
+const BAD_IDS = new Set(['h_jan_2','h_jan_9','h_feb_2','h_feb_10','h_mar_1','h_mar_8','h_apr_2','h_apr_10','h_may_2','h_may_10','h_jun_7']);
+const hadBad = state.transactions.some(t => BAD_IDS.has(t.id));
+if(hadBad) { state.transactions = state.transactions.filter(t => !BAD_IDS.has(t.id)); save(); }
+
+
+// ============================================================
+// HELPERS
+// ============================================================
+const fmt = n => '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtShort = n => '$' + Math.round(n).toLocaleString();
+function save() { localStorage.setItem('budgetpro2026', JSON.stringify(state)); }
+
+function getMonthData(m) {
+  const base = MONTHLY_DATA[m] || {income:0, expense:0};
+  const txns = state.transactions.filter(t => t.month === m);
+  const adjs = state.incomeAdj.filter(a => a.month === m);
+
+  // Build card and category breakdowns from transactions (for drilldown)
+  const cards = {}, cats = {};
+  txns.forEach(t => {
+    cards[t.card] = (cards[t.card]||0) + t.amount;
+    cats[t.cat]   = (cats[t.cat]||0)   + t.amount;
+  });
+
+  // Income: always from state entries
+  const income = adjs.reduce((s,a) => s + a.amount, 0);
+
+  // Expense: for historical months use exact sheet total + any user-added txns on top
+  // For months with no sheet baseline, compute purely from transactions
+  const seedTxnTotal = txns
+    .filter(t => String(t.id).match(/^(h_|fx_)/))
+    .reduce((s,t) => s+t.amount, 0);
+  const userTxnTotal = txns
+    .filter(t => !String(t.id).match(/^(h_|fx_)/))
+    .reduce((s,t) => s+t.amount, 0);
+
+  // If this month has a sheet baseline, use it + any new user transactions
+  const expense = base.expense > 0
+    ? base.expense + userTxnTotal
+    : Object.values(cats).reduce((s,v) => s+v, 0);
+
+  return { income, expense, cards, cats };
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modal tapping backdrop
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) { m.classList.remove('open'); stopCamera(); } });
+});
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const pg = document.getElementById('page-'+name);
+  if(pg) pg.classList.add('active');
+  if(btn) btn.classList.add('active');
+  window.scrollTo(0,0);
+  renderPage(name);
+}
+
+// ============================================================
+// RENDER HOME
+// ============================================================
+function renderHome() {
+  const m = state.currentMonth;
+  const data = getMonthData(m);
+  const profit = data.income - data.expense;
+
+  // Month pills
+  const pillsEl = document.getElementById('monthPills');
+  pillsEl.innerHTML = MONTHS.map(mo => {
+    const hasData = !!MONTHLY_DATA[mo] || state.transactions.some(t=>t.month===mo);
+    return `<button class="month-pill ${mo===m?'active':''} ${!hasData&&mo!==m?'':''}'" onclick="selectMonth('${mo}')">${mo}</button>`;
+  }).join('');
+
+  // Status banner — based on profit (income - expenses)
+  const pct = data.expense / data.income * 100;
+  let bannerClass, bannerIcon, bannerTitle, bannerSub;
+  if(profit < 0) {
+    bannerClass='warn'; bannerIcon='⚠️';
+    bannerTitle=`Expenses exceeded income`;
+    bannerSub=`${fmt(Math.abs(profit))} more spent than earned this month.`;
+  } else if(pct >= 95) {
+    bannerClass='warn'; bannerIcon='⚠️';
+    bannerTitle=`Almost breaking even`;
+    bannerSub=`Only ${fmt(profit)} left — ${Math.round(pct)}% of income spent.`;
+  } else if(pct >= 80) {
+    bannerClass='warn'; bannerIcon='💛';
+    bannerTitle=`On track, spending high`;
+    bannerSub=`${fmt(profit)} remaining — ${Math.round(pct)}% of income spent.`;
+  } else {
+    bannerClass='good'; bannerIcon='✅';
+    bannerTitle=`Looking good!`;
+    bannerSub=`${fmt(profit)} left after expenses — ${Math.round(100-pct)}% of income saved.`;
+  }
+  document.getElementById('statusBanner').innerHTML =
+    `<div class="status-banner ${bannerClass}"><div class="status-icon">${bannerIcon}</div><div class="status-text"><div class="title">${bannerTitle}</div><div class="sub">${bannerSub}</div></div></div>`;
+
+  // Stats
+  const target = state.incomeTarget || 4541.88;
+  const overTarget = data.income - target;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card income" style="cursor:pointer;position:relative" onclick="openIncomeBreakdown()">
+      <div class="label">Income <span style="font-size:.6rem;opacity:.6">▶ tap</span></div>
+      <div class="value">${fmtShort(data.income)}</div>
+      <div style="font-size:.68rem;margin-top:4px;color:${overTarget>=0?'var(--accent3)':'var(--red)'}">
+        ${overTarget>=0 ? '▲ +'+fmt(overTarget)+' over target' : '▼ '+fmt(Math.abs(overTarget))+' under target'}
+      </div>
+    </div>
+    <div class="stat-card expense" style="cursor:pointer;position:relative" onclick="openExpenseBreakdown()">
+      <div class="label">Expenses <span style="font-size:.6rem;opacity:.6">▶ tap</span></div>
+      <div class="value">${fmtShort(data.expense)}</div>
+      <div style="font-size:.68rem;margin-top:4px;color:rgba(255,179,209,.7)">
+        ${Math.round(data.expense/data.income*100)}% of income
+      </div>
+    </div>
+    <div class="stat-card profit"><div class="label">Net</div><div class="value">${profit>=0?'+':''}${fmtShort(profit)}</div></div>
+    <div class="stat-card savings"><div class="label">Saved</div><div class="value">${fmtShort(Math.max(0,profit))}</div></div>
+  `;
+
+  document.getElementById('curMonthLabel').textContent = MONTH_FULL[MONTHS.indexOf(m)] || m;
+
+  // Category progress
+  const catEl = document.getElementById('catProgress');
+  const cats = CATEGORIES.filter(c => c.id !== 'fixed');
+  catEl.innerHTML = `<div class="card" style="padding:8px 14px">` + cats.map(c => {
+    const spent = data.cats[c.id]||0;
+    const budget = getCatBudget(c, m);
+    const pct2 = Math.min(100,(spent/budget)*100);
+    const over = spent > budget;
+    const color = over ? 'var(--red)' : pct2 > 80 ? 'var(--accent4)' : c.color;
+    const remaining = budget - spent;
+    return `<div class="cat-item" style="cursor:pointer" onclick="openEditCat('${c.id}')">
+      <div class="cat-row">
+        <div class="cat-name"><div class="cat-emoji">${c.emoji}</div>${c.name}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="cat-amounts">
+            <div class="cat-spent" style="color:${color}">${fmt(spent)}</div>
+            <div class="cat-budget">/ ${fmt(budget)}</div>
+          </div>
+          <button onclick="event.stopPropagation();openEditCat('${c.id}')" style="background:rgba(255,255,255,0.07);border:none;border-radius:8px;padding:4px 8px;color:var(--muted);font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer;flex-shrink:0">✏️ Edit</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:.68rem;color:var(--muted)">${over ? '⚠️ '+fmt(Math.abs(remaining))+' over' : fmt(remaining)+' remaining'}</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill" style="width:${pct2}%;background:${color}"></div></div>
+    </div>`;
+  }).join('') + '</div>';
+
+  renderOverviewChart();
+  renderCatChart(data);
+  renderSavingsTracker();
+}
+
+function renderSavingsTracker() {
+  const annualGoal = state.savingsGoal || 7500; // $625 x 12
+  const monthlyGoal = 625;
+  const completedMonths = ['Jan','Feb','Mar','Apr','May'];
+  const totalMonths = 12;
+
+  // Count actual savings payments from fx_ seeds + user-added fixed payments for Marcus
+  const saved = state.transactions
+    .filter(t => t.fixedBill === 'Marcus Savings')
+    .reduce((s,t) => s + t.amount, 0);
+
+  const pct = Math.min(100, (saved / annualGoal) * 100);
+  const remaining = annualGoal - saved;
+  const monthsLeft = totalMonths - completedMonths.length;
+  const onTrack = saved >= (completedMonths.length * monthlyGoal);
+  const projectedYear = saved + (monthsLeft * monthlyGoal);
+
+  // Monthly breakdown dots
+  const dots = MONTHS.map(m => {
+    const paid = state.transactions
+      .filter(t => t.fixedBill === 'Marcus Savings' && t.month === m)
+      .reduce((s,t) => s+t.amount, 0);
+    const isFuture = !completedMonths.includes(m) && m !== 'Jun';
+    return { m, paid, isFuture };
+  });
+
+  document.getElementById('savingsTracker').innerHTML = `
+    <div class="card" style="padding:18px;background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(6,214,160,.05));border-color:rgba(251,191,36,.2)">
+
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div>
+          <div style="font-size:1.6rem;font-weight:800;color:#fde68a">${fmt(saved)}</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:2px">saved of ${fmt(annualGoal)} goal</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:.72rem;color:var(--muted)">Projected end of year</div>
+          <div style="font-size:1rem;font-weight:800;color:${projectedYear>=annualGoal?'#06d6a0':'#fbbf24'}">${fmt(projectedYear)}</div>
+          <div style="font-size:.68rem;margin-top:2px;color:${onTrack?'#06d6a0':'#fbbf24'}">${onTrack ? '✅ On track' : '⚠️ Behind pace'}</div>
+        </div>
+      </div>
+
+      <!-- Main progress bar -->
+      <div style="margin-bottom:6px;display:flex;justify-content:space-between">
+        <span style="font-size:.7rem;color:var(--muted)">Progress</span>
+        <span style="font-size:.7rem;font-weight:700;color:#fde68a">${Math.round(pct)}%</span>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:99px;height:12px;overflow:hidden;margin-bottom:16px;position:relative">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#fbbf24,#06d6a0);border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1)"></div>
+      </div>
+
+      <!-- Monthly dots -->
+      <div style="font-size:.68rem;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Monthly Contributions</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${dots.map(d => {
+          const bg = d.paid > 0 ? 'linear-gradient(135deg,#fbbf24,#f59e0b)' :
+                     d.isFuture ? 'rgba(255,255,255,.06)' : 'rgba(255,77,109,.2)';
+          const textColor = d.paid > 0 ? '#000' : d.isFuture ? 'var(--muted)' : '#ff4d6d';
+          const border = d.paid > 0 ? 'none' : d.isFuture ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(255,77,109,.3)';
+          return `<div style="flex:1;min-width:40px;background:${bg};border:${border};border-radius:10px;padding:6px 4px;text-align:center">
+            <div style="font-size:.6rem;font-weight:700;color:${textColor};opacity:.8">${d.m}</div>
+            <div style="font-size:.7rem;font-weight:800;color:${textColor}">${d.paid > 0 ? '$'+Math.round(d.paid) : d.isFuture ? '—' : '✗'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- Stats row -->
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <div style="flex:1;background:rgba(255,255,255,.05);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:.65rem;color:var(--muted)">Monthly</div>
+          <div style="font-size:.9rem;font-weight:800;color:#fde68a">${fmt(monthlyGoal)}</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,.05);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:.65rem;color:var(--muted)">Remaining</div>
+          <div style="font-size:.9rem;font-weight:800;color:${remaining>0?'var(--muted)':'#06d6a0'}">${remaining > 0 ? fmt(remaining) : '🎉 Done!'}</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,.05);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:.65rem;color:var(--muted)">Months Left</div>
+          <div style="font-size:.9rem;font-weight:800;color:var(--text)">${monthsLeft}</div>
+        </div>
+      </div>
+
+      <!-- Edit goal -->
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+        <span style="font-size:.75rem;color:var(--muted);flex-shrink:0">Annual goal:</span>
+        <input type="number" id="savingsGoalInput" value="${annualGoal}" step="100"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--accent4);font-weight:800;font-size:.85rem;font-family:inherit">
+        <button onclick="saveSavingsGoal()" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;border:none;border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:800;font-family:inherit;cursor:pointer;flex-shrink:0">Update</button>
+      </div>
+    </div>
+  `;
+}
+
+function saveSavingsGoal() {
+  const val = parseFloat(document.getElementById('savingsGoalInput').value);
+  if(!isNaN(val) && val > 0) {
+    state.savingsGoal = val;
+    save();
+    showToast('Savings goal updated!');
+    renderSavingsTracker();
+  }
+}
+function selectMonth(m) {
+  state.currentMonth = m;
+  save();
+  renderHome();
+}
+
+function saveIncomeTarget() {
+  const val = parseFloat(document.getElementById('incomeTargetInput').value);
+  if(!isNaN(val) && val > 0) {
+    state.incomeTarget = val;
+    save();
+    showToast('Target updated!');
+    renderHome();
+  }
+}
+
+function openIncomeBreakdown() {
+  const m = state.currentMonth;
+  const monthName = MONTH_FULL[MONTHS.indexOf(m)] || m;
+  const target = state.incomeTarget || 4192.52;
+  const entries = state.incomeAdj.filter(a => a.month === m);
+
+  const paychecks = entries.filter(a => a.type === 'paycheck');
+  const cashback  = entries.filter(a => a.type === 'cashback');
+  const other     = entries.filter(a => a.type !== 'paycheck' && a.type !== 'cashback');
+
+  // Seeded entries (id starts with p, h_, fx_) = carryover from sheet
+  // User-added entries = new extras on top of target
+  const isSeeded = a => String(a.id).match(/^(p\d|h_|fx_)/);
+  const carryoverEntries = entries.filter(isSeeded);
+  const extraEntries     = entries.filter(a => !isSeeded(a));
+
+  const paycheckTotal  = paychecks.reduce((s,a) => s+a.amount, 0);
+  const cashbackTotal  = cashback.reduce((s,a) => s+a.amount, 0);
+  const otherTotal     = other.reduce((s,a) => s+a.amount, 0);
+  const carryoverTotal = carryoverEntries.reduce((s,a) => s+a.amount, 0);
+  const extraTotal     = extraEntries.reduce((s,a) => s+a.amount, 0);
+  const grandTotal     = paycheckTotal + cashbackTotal + otherTotal;
+  const overTarget     = grandTotal - target;
+
+  document.getElementById('incomeBreakdownTitle').textContent = `💰 ${monthName} Income`;
+  document.getElementById('incomeTargetInput').value = target.toFixed(2);
+  document.getElementById('ibPaycheckTotal').textContent  = fmt(paycheckTotal);
+  document.getElementById('ibCashbackTotal').textContent  = cashbackTotal > 0 ? fmt(cashbackTotal) : '—';
+  document.getElementById('ibOtherTotal').textContent     = otherTotal > 0 ? fmt(otherTotal) : '—';
+  document.getElementById('ibGrandTotal').textContent     = fmt(grandTotal);
+
+  // Over/under target callout
+  const ob = document.getElementById('ibOverTarget');
+  if(overTarget > 0) {
+    ob.style.display = 'block';
+    ob.style.cssText += 'background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.2);display:block;border-radius:12px;padding:12px 14px;margin-bottom:14px';
+    ob.innerHTML = `
+      <div style="font-size:.85rem;font-weight:800;color:var(--accent3);margin-bottom:4px">🎉 ${fmt(overTarget)} above your $${target.toLocaleString()} target</div>
+      <div style="font-size:.75rem;color:var(--muted)">Carryover baseline: <strong style="color:var(--text)">${fmt(carryoverTotal)}</strong> · Extras added: <strong style="color:var(--accent4)">${extraTotal > 0 ? fmt(extraTotal) : 'none yet'}</strong></div>`;
+  } else if(overTarget < 0) {
+    ob.style.display = 'block';
+    ob.style.cssText += 'background:rgba(255,170,59,.1);border:1px solid rgba(255,170,59,.2);display:block;border-radius:12px;padding:12px 14px;margin-bottom:14px';
+    ob.innerHTML = `
+      <div style="font-size:.85rem;font-weight:800;color:var(--accent4);margin-bottom:4px">⚠️ ${fmt(Math.abs(overTarget))} below your $${target.toLocaleString()} target</div>
+      <div style="font-size:.75rem;color:var(--muted)">Carryover: <strong style="color:var(--text)">${fmt(carryoverTotal)}</strong> · Add cash back or transfers to close the gap.</div>`;
+  } else {
+    ob.style.display = 'none';
+  }
+
+  // Paycheck list — carryover entries
+  const pcEl = document.getElementById('ibPaycheckList');
+  pcEl.innerHTML = paychecks.length === 0
+    ? '<p style="color:var(--muted);font-size:.82rem;padding:10px 0;text-align:center">No paychecks logged yet.</p>'
+    : paychecks.map(p => {
+        const seedBadge = isSeeded(p)
+          ? `<span style="background:rgba(255,170,59,.15);color:var(--accent4);font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:6px">Carryover</span>`
+          : `<span style="background:rgba(0,212,170,.15);color:var(--accent3);font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:6px">New</span>`;
+        return `<div class="txn-item" style="flex-wrap:wrap;gap:4px">
+          <div class="txn-info" style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="txn-name">Paycheck${p.note?' — '+p.note:''}</span>
+              ${seedBadge}
+            </div>
+            <div class="txn-meta">${p.date}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span class="txn-amount pos">${fmt(p.amount)}</span>
+            <button onclick="closeModal('incomeBreakdownModal');setTimeout(()=>openEditIncome('${p.id}'),300)" style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">Edit</button>
+            <button onclick="deleteIncome('${p.id}');setTimeout(()=>openIncomeBreakdown(),300)" style="background:rgba(255,82,82,.12);color:var(--red);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">✕</button>
+          </div>
+        </div>`;
+      }).join('');
+
+  // Extras list — cash back, rewards, transfers
+  const exEl = document.getElementById('ibExtraList');
+  const extras = [...cashback, ...other];
+  exEl.innerHTML = extras.length === 0
+    ? '<p style="color:var(--muted);font-size:.82rem;padding:10px 0;text-align:center">No extras yet — add cash back, rewards, or transfers above your target.</p>'
+    : extras.map(a => {
+        const seedBadge = isSeeded(a)
+          ? `<span style="background:rgba(255,170,59,.15);color:var(--accent4);font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:6px">Carryover</span>`
+          : `<span style="background:rgba(0,212,170,.15);color:var(--accent3);font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:6px">New</span>`;
+        return `<div class="txn-item" style="flex-wrap:wrap;gap:4px">
+          <div class="txn-info" style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="txn-name">${typeLabel(a.type)}${a.note?' — '+a.note:''}</span>
+              ${seedBadge}
+            </div>
+            <div class="txn-meta">${a.date}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span class="txn-amount pos">${fmt(a.amount)}</span>
+            <button onclick="closeModal('incomeBreakdownModal');setTimeout(()=>openEditIncome('${a.id}'),300)" style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">Edit</button>
+            <button onclick="deleteIncome('${a.id}');setTimeout(()=>openIncomeBreakdown(),300)" style="background:rgba(255,82,82,.12);color:var(--red);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">✕</button>
+          </div>
+        </div>`;
+      }).join('');
+
+  openModal('incomeBreakdownModal');
+}
+
+// ============================================================
+// CATEGORY BREAKDOWN + EDIT
+// ============================================================
+function openExpenseBreakdown() {
+  const m = state.currentMonth;
+  const monthName = MONTH_FULL[MONTHS.indexOf(m)] || m;
+  const data = getMonthData(m);
+
+  document.getElementById('expenseBreakdownTitle').textContent = `💸 ${monthName} Expenses`;
+
+  // Totals
+  const fixedCats = ['fixed'];
+  const fixedTotal = (data.cats['fixed'] || 0);
+  const variableTotal = CATEGORIES
+    .filter(c => c.id !== 'fixed')
+    .reduce((s,c) => s + (data.cats[c.id]||0), 0);
+  const pct = data.income > 0 ? Math.round(data.expense / data.income * 100) : 0;
+  const pctColor = pct >= 100 ? 'var(--red)' : pct >= 90 ? 'var(--accent4)' : 'var(--accent3)';
+
+  document.getElementById('ebTotal').textContent = fmt(data.expense);
+  document.getElementById('ebFixed').textContent = fmt(fixedTotal);
+  document.getElementById('ebVariable').textContent = fmt(variableTotal);
+  document.getElementById('ebPct').innerHTML = `<span style="color:${pctColor}">${pct}%</span>`;
+
+  // Category breakdown
+  const varCats = CATEGORIES.filter(c => c.id !== 'fixed');
+  document.getElementById('ebCatList').innerHTML = varCats
+    .map(c => {
+      const spent = data.cats[c.id] || 0;
+      const budget = getCatBudget(c, m);
+      const pct2 = Math.min(100, (spent / budget) * 100);
+      const over = spent > budget;
+      const color = over ? 'var(--red)' : pct2 > 80 ? 'var(--accent4)' : c.color;
+      if(spent === 0) return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span style="font-size:16px">${c.emoji}</span>
+        <span style="flex:1;font-size:.85rem;font-weight:600;color:var(--muted)">${c.name}</span>
+        <span style="font-size:.8rem;color:var(--muted)">$0.00</span>
+      </div>`;
+      return `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
+          <span style="font-size:16px">${c.emoji}</span>
+          <span style="flex:1;font-size:.85rem;font-weight:700">${c.name}</span>
+          <span style="font-size:.85rem;font-weight:800;color:${color}">${fmt(spent)}</span>
+          <span style="font-size:.72rem;color:var(--muted)">/ ${fmt(budget)}</span>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:99px;height:6px;overflow:hidden">
+          <div style="height:100%;width:${pct2}%;background:${color};border-radius:99px;transition:width .5s"></div>
+        </div>
+      </div>`;
+    }).join('');
+
+  // Fixed bills breakdown
+  const fixedBills = state.fixedExpenses;
+  document.getElementById('ebFixedList').innerHTML = fixedBills.map(f => {
+    const paid = state.transactions
+      .filter(t => t.fixedBill === f.name && t.month === m)
+      .reduce((s,t) => s+t.amount, 0);
+    const isPending = paid === 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span style="font-size:16px">${f.icon}</span>
+      <span style="flex:1;font-size:.85rem;font-weight:600">${f.name}</span>
+      <span style="font-size:.8rem;font-weight:700;color:${isPending?'var(--muted)':paid>f.amount?'var(--red)':'var(--accent3)'}">${isPending ? 'Pending' : fmt(paid)}</span>
+      <span style="font-size:.72rem;color:var(--muted)">/ ${fmt(f.amount)}</span>
+    </div>`;
+  }).join('');
+
+  openModal('expenseBreakdownModal');
+}
+
+// ============================================================
+// CATEGORY BREAKDOWN + EDIT
+// ============================================================
+function openEditCat(catId) {
+  const m = state.currentMonth;
+  const data = getMonthData(m);
+  const cat = CATEGORIES.find(c=>c.id===catId);
+  if(!cat) return;
+  const spent = data.cats[catId]||0;
+  const budget = getCatBudget(cat, m);
+  document.getElementById('editCatId').value = catId;
+  document.getElementById('editCatTitle').textContent = `${cat.emoji} ${cat.name} — ${m}`;
+  document.getElementById('editCatSpent').textContent = fmt(spent);
+  document.getElementById('editCatSpent').style.color = spent > budget ? 'var(--red)' : 'var(--accent3)';
+  document.getElementById('editCatCurrentBudget').textContent = fmt(budget);
+  document.getElementById('editCatBudget').value = budget;
+
+  // Build transaction breakdown for this category + month
+  const txns = state.transactions.filter(t => t.cat===catId && t.month===m);
+  const el = document.getElementById('editCatTxnList');
+  if(txns.length === 0) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:10px 0;text-align:center">No logged transactions for this category yet.</p>';
+  } else {
+    el.innerHTML = txns.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t => {
+      const card = CARDS.find(c=>c.id===t.card)||{name:t.card,color:'#888'};
+      const isNeg = t.amount < 0;
+      return `<div class="txn-item" style="flex-wrap:wrap;gap:4px">
+        <div class="txn-info" style="flex:1;min-width:0">
+          <div class="txn-name">${t.name}</div>
+          <div class="txn-meta">${t.date} · <span style="color:${card.color}">${card.name}</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <div class="txn-amount ${isNeg?'pos':'neg'}">${isNeg?'+':'-'}${fmt(Math.abs(t.amount))}</div>
+          <button onclick="openEditTxnFromCat('${t.id}')" style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">Edit</button>
+          <button onclick="deleteTxnFromCat('${t.id}')" style="background:rgba(255,82,82,.12);color:var(--red);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  openModal('editCatModal');
+}
+
+function saveEditCatBudget() {
+  const catId = document.getElementById('editCatId').value;
+  const newBudget = parseFloat(document.getElementById('editCatBudget').value);
+  const m = state.currentMonth;
+  if(!isNaN(newBudget) && newBudget > 0) {
+    // Store budget per month — never touches other months
+    if(!state.monthBudgets) state.monthBudgets = {};
+    if(!state.monthBudgets[m]) state.monthBudgets[m] = {};
+    state.monthBudgets[m][catId] = newBudget;
+    document.getElementById('editCatCurrentBudget').textContent = fmt(newBudget);
+    save();
+    showToast(`Budget updated for ${m} only!`);
+    renderHome();
+  }
+}
+
+function openEditTxnFromCat(id) {
+  closeModal('editCatModal');
+  setTimeout(()=>openEditTxn(id), 300);
+}
+
+function deleteTxnFromCat(id) {
+  if(!confirm('Delete this transaction?')) return;
+  state.transactions = state.transactions.filter(t=>String(t.id)!==String(id));
+  save();
+  showToast('Deleted!');
+  // Refresh the cat modal
+  const catId = document.getElementById('editCatId').value;
+  openEditCat(catId);
+  renderHome();
+}
+
+// ============================================================
+// CARD BREAKDOWN
+// ============================================================
+function openCardBreakdown(cardId) {
+  const m = state.currentMonth;
+  const card = CARDS.find(c=>c.id===cardId);
+  if(!card) return;
+  const txns = state.transactions
+    .filter(t => t.card===cardId && t.month===m)
+    .sort((a,b) => new Date(b.date) - new Date(a.date)); // newest first
+  const total = txns.reduce((s,t)=>s+t.amount,0);
+
+  document.getElementById('cardBreakdownTitle').innerHTML = `<span style="display:inline-flex;align-items:center;gap:10px">${CARD_ICONS[cardId]||'💳'} <span style="color:${card.color}">${card.name}</span> — ${m}</span>`;
+  document.getElementById('cardBreakdownTotal').textContent = fmt(total);
+  document.getElementById('cardBreakdownCount').textContent = `${txns.length} charge${txns.length!==1?'s':''}`;
+
+  const el = document.getElementById('cardBreakdownList');
+  if(txns.length === 0) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:10px 0;text-align:center">No logged transactions for this card yet.</p>';
+  } else {
+    el.innerHTML = txns.map(t => {
+      const cat = CATEGORIES.find(c=>c.id===t.cat)||{emoji:'💰',name:t.cat,color:'#888'};
+      return `<div class="txn-item" style="flex-wrap:wrap;gap:4px">
+        <div class="txn-icon" style="background:${cat.color}22;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${cat.emoji}</div>
+        <div class="txn-info" style="flex:1;min-width:0">
+          <div class="txn-name">${t.name}</div>
+          <div class="txn-meta">${t.date} · <span style="color:${cat.color}">${cat.name}</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <div class="txn-amount neg">-${fmt(t.amount)}</div>
+          <button onclick="openEditTxnFromCard('${t.id}')" style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">Edit</button>
+          <button onclick="deleteTxnFromCard('${t.id}')" style="background:rgba(255,82,82,.12);color:var(--red);border:none;border-radius:8px;padding:4px 8px;font-size:.7rem;font-weight:700;font-family:inherit;cursor:pointer">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  openModal('cardBreakdownModal');
+}
+
+function openEditTxnFromCard(id) {
+  closeModal('cardBreakdownModal');
+  setTimeout(()=>openEditTxn(id), 300);
+}
+
+function deleteTxnFromCard(id) {
+  if(!confirm('Delete this transaction?')) return;
+  state.transactions = state.transactions.filter(t=>String(t.id)!==String(id));
+  save();
+  showToast('Deleted!');
+  renderCards();
+  closeModal('cardBreakdownModal');
+}
+
+// ============================================================
+// INCOME EDIT / DELETE
+// ============================================================
+function openEditIncome(id) {
+  const a = state.incomeAdj.find(a=>String(a.id)===String(id));
+  if(!a) return;
+  document.getElementById('editIncId').value = id;
+  document.getElementById('editIncType').value = a.type;
+  document.getElementById('editIncAmt').value = a.amount;
+  document.getElementById('editIncDate').value = a.date;
+  document.getElementById('editIncNote').value = a.note||'';
+  openModal('editIncomeModal');
+}
+
+function saveEditIncome() {
+  const id = document.getElementById('editIncId').value;
+  const idx = state.incomeAdj.findIndex(a=>String(a.id)===String(id));
+  if(idx===-1) return;
+  const type = document.getElementById('editIncType').value;
+  const amt = parseFloat(document.getElementById('editIncAmt').value);
+  const date = document.getElementById('editIncDate').value;
+  const note = document.getElementById('editIncNote').value.trim();
+  if(!amt||!date) { showToast('Please fill amount and date'); return; }
+  const mo = MONTHS[new Date(date+'T12:00:00').getMonth()];
+  state.incomeAdj[idx] = {id, type, amount:amt, date, note, month:mo};
+  save();
+  closeModal('editIncomeModal');
+  showToast('Income entry updated!');
+  renderIncome();
+}
+
+function deleteIncome(id) {
+  if(!confirm('Delete this income entry?')) return;
+  state.incomeAdj = state.incomeAdj.filter(a => String(a.id) !== String(id));
+  save();
+  showToast('Income entry deleted');
+  renderIncome();
+  renderHome();
+}
+
+function renderOverviewChart() {
+  const ctx = document.getElementById('overviewChart');
+  if(ctx._chart) ctx._chart.destroy();
+  const incomes = MONTHS.map(m => getMonthData(m).income);
+  const expenses = MONTHS.map(m => getMonthData(m).expense);
+  ctx._chart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:MONTHS,
+      datasets:[
+        {label:'Income',data:incomes,backgroundColor:'rgba(0,212,170,.5)',borderColor:'rgba(0,212,170,1)',borderWidth:1.5,borderRadius:4},
+        {label:'Expenses',data:expenses,backgroundColor:'rgba(255,107,157,.4)',borderColor:'rgba(255,107,157,1)',borderWidth:1.5,borderRadius:4}
+      ]
+    },
+    options:{responsive:true,plugins:{legend:{labels:{color:'#8888aa',font:{size:11}}}},scales:{x:{ticks:{color:'#8888aa',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8888aa',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.04)'}}}}
+  });
+}
+
+function renderCatChart(data) {
+  const ctx = document.getElementById('catChart');
+  if(ctx._chart) ctx._chart.destroy();
+  const cats = CATEGORIES;
+  const vals = cats.map(c=>data.cats[c.id]||0);
+  ctx._chart = new Chart(ctx, {
+    type:'doughnut',
+    data:{labels:cats.map(c=>c.emoji+' '+c.name),datasets:[{data:vals,backgroundColor:cats.map(c=>c.color+'cc'),borderColor:'rgba(0,0,0,0)',hoverOffset:6}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8888aa',font:{size:10},boxWidth:12,padding:8}}}}
+  });
+}
+
+const CARD_ICONS = {
+  usbank: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#cc0000"/><text x="24" y="20" text-anchor="middle" fill="white" font-size="9" font-weight="900" font-family="Arial">US</text><text x="24" y="31" text-anchor="middle" fill="white" font-size="9" font-weight="900" font-family="Arial">BANK</text></svg>`,
+  chase: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#117aca"/><polygon points="24,8 40,24 24,40 8,24" fill="none" stroke="white" stroke-width="3"/><line x1="24" y1="8" x2="24" y2="40" stroke="white" stroke-width="3"/><line x1="8" y1="24" x2="40" y2="24" stroke="white" stroke-width="3"/></svg>`,
+  citi: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#003b70"/><text x="24" y="28" text-anchor="middle" fill="white" font-size="14" font-weight="900" font-family="Arial">citi</text><rect x="36" y="18" width="5" height="5" rx="2.5" fill="#e31837"/></svg>`,
+  debit: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#231f20"/><circle cx="19" cy="24" r="9" fill="#e31837"/><circle cx="29" cy="24" r="9" fill="#f79e1b" opacity="0.9"/></svg>`,
+  bilt: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#1a1a2e"/><text x="24" y="29" text-anchor="middle" fill="white" font-size="13" font-weight="900" font-family="Arial" letter-spacing="1">BILT</text></svg>`,
+  discover: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#ffffff"/><rect width="48" height="48" rx="10" fill="#231f20"/><circle cx="32" cy="24" r="10" fill="#f76f20"/><text x="14" y="27" fill="white" font-size="7" font-weight="900" font-family="Arial">DISC</text></svg>`,
+  discoverit: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#231f20"/><circle cx="32" cy="24" r="10" fill="#f76f20"/><text x="10" y="23" fill="white" font-size="6.5" font-weight="900" font-family="Arial">DISC</text><text x="10" y="31" fill="#f76f20" font-size="6.5" font-weight="900" font-family="Arial">it</text></svg>`,
+  wellsfargo: `<svg viewBox="0 0 48 48" width="36" height="36"><rect width="48" height="48" rx="10" fill="#cc0000"/><rect x="6" y="20" width="36" height="10" rx="2" fill="#ffcd00"/><text x="24" y="18" text-anchor="middle" fill="white" font-size="6.5" font-weight="900" font-family="Arial">WELLS</text><text x="24" y="37" text-anchor="middle" fill="white" font-size="6.5" font-weight="900" font-family="Arial">FARGO</text></svg>`,
+};
+
+// ============================================================
+// RENDER CARDS PAGE
+// ============================================================
+function renderCards() {
+  const m = state.currentMonth;
+  const data = getMonthData(m);
+  const cards = CARDS.map(c => ({...c, spent: data.cards[c.id]||0})).sort((a,b)=>b.spent-a.spent);
+
+  document.getElementById('ccList').innerHTML = cards.filter(c=>c.spent>0).map(c=>`
+    <div class="cc-item" style="cursor:pointer" onclick="openCardBreakdown('${c.id}')">
+      <div class="cc-dot" style="background:transparent;padding:0;overflow:hidden">${CARD_ICONS[c.id]||'💳'}</div>
+      <div class="cc-info"><div class="name">${c.name}</div><div class="sub">${m} 2026</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="cc-amount" style="color:${c.color}">${fmt(c.spent)}</div>
+        <span style="font-size:.7rem;color:var(--muted);background:var(--bg3);padding:3px 8px;border-radius:6px">View ›</span>
+      </div>
+    </div>`).join('');
+
+  // YTD
+  const ytd = {};
+  CARDS.forEach(c=>ytd[c.id]=0);
+  MONTHS.forEach(mo=>{ const d=getMonthData(mo); CARDS.forEach(c=>ytd[c.id]+=(d.cards[c.id]||0)); });
+  document.getElementById('ccYTD').innerHTML = CARDS.map(c=>`
+    <div class="cc-item">
+      <div class="cc-dot" style="background:transparent;padding:0;overflow:hidden">${CARD_ICONS[c.id]||'💳'}</div>
+      <div class="cc-info"><div class="name">${c.name}</div><div class="sub">Year to date</div></div>
+      <div class="cc-amount" style="color:${c.color}">${fmt(ytd[c.id])}</div>
+    </div>`).join('');
+
+  // Chart
+  const ctx = document.getElementById('ccChart');
+  if(ctx._chart) ctx._chart.destroy();
+  const top = cards.filter(c=>c.spent>0);
+  ctx._chart = new Chart(ctx, {
+    type:'bar',
+    data:{labels:top.map(c=>c.name.split(' ')[0]),datasets:[{data:top.map(c=>c.spent),backgroundColor:top.map(c=>c.color+'aa'),borderColor:top.map(c=>c.color),borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8888aa',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#8888aa',font:{size:10},callback:v=>'$'+v},grid:{color:'rgba(255,255,255,0.04)'}}}}
+  });
+}
+
+// ============================================================
+// RENDER TRANSACTIONS
+// ============================================================
+let txnRowCount = 0;
+
+function openAddTxnModal() {
+  txnRowCount = 0;
+  document.getElementById('txnRows').innerHTML = '';
+  document.getElementById('txnDate').value = new Date().toISOString().split('T')[0];
+  const cardSel = document.getElementById('txnCard');
+  cardSel.innerHTML = CARDS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  updateTxnTotal();
+  addTxnRow();
+  openModal('addTxnModal');
+}
+
+function addTxnRow() {
+  const id = txnRowCount++;
+  const catOpts = CATEGORIES.map(c=>`<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+  const row = document.createElement('div');
+  row.id = `txrow_${id}`;
+  row.style.cssText = 'margin-bottom:10px;background:var(--bg3);border-radius:10px;padding:10px';
+  row.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <input class="form-input" placeholder="Description" style="flex:1;font-size:.82rem;padding:8px 10px" oninput="updateTxnTotal()">
+      <input class="form-input" type="number" placeholder="$0.00" step="0.01" style="width:90px;font-size:.82rem;padding:8px 10px" oninput="updateTxnTotal()">
+      <button onclick="removeTxnRow(${id})" style="background:rgba(255,82,82,.15);color:var(--red);border:none;border-radius:8px;width:32px;height:36px;font-size:1rem;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+    <select class="form-input" style="width:100%;font-size:.8rem;padding:8px 10px">${catOpts}</select>`;
+  document.getElementById('txnRows').appendChild(row);
+  updateTxnTotal();
+}
+
+function removeTxnRow(id) {
+  const el = document.getElementById(`txrow_${id}`);
+  if(el) el.remove();
+  updateTxnTotal();
+}
+
+function updateTxnTotal() {
+  let total = 0;
+  document.querySelectorAll('#txnRows > div').forEach(row => {
+    const amt = parseFloat(row.querySelectorAll('input')[1]?.value) || 0;
+    total += amt;
+  });
+  document.getElementById('txnRunningTotal').textContent = fmt(total);
+}
+
+function saveAllTxnRows() {
+  const date = document.getElementById('txnDate').value;
+  const card = document.getElementById('txnCard').value;
+  if(!date) { showToast('Please pick a date'); return; }
+  const mo = MONTHS[new Date(date+'T12:00:00').getMonth()];
+  let count = 0;
+  document.querySelectorAll('#txnRows > div').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const name = inputs[0].value.trim();
+    const amt = parseFloat(inputs[1].value);
+    const cat = row.querySelector('select').value;
+    if(name && amt > 0) {
+      state.transactions.push({id:String(Date.now()+count), name, amount:amt, cat, card, date, month:mo});
+      count++;
+    }
+  });
+  if(count === 0) { showToast('Add at least one item'); return; }
+  save();
+  closeModal('addTxnModal');
+  showToast(`${count} transaction${count>1?'s':''} saved!`);
+  renderTransactions();
+}
+
+function renderTransactions() {
+
+  const allTxns = [...state.transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,50);
+  const el = document.getElementById('txnList');
+  if(allTxns.length===0) { el.innerHTML='<p style="color:var(--muted);font-size:.85rem;padding:12px 0;text-align:center">No transactions yet. Add one above!</p>'; return; }
+  el.innerHTML = allTxns.map(t=>{
+    const cat = CATEGORIES.find(c=>c.id===t.cat)||{emoji:'💰',name:t.cat,color:'#888'};
+    const card = CARDS.find(c=>c.id===t.card)||{name:t.card,color:'#888'};
+    return `<div class="txn-item" style="flex-wrap:wrap;gap:4px">
+      <div class="txn-icon" style="background:${cat.color}22">${cat.emoji}</div>
+      <div class="txn-info">
+        <div class="txn-name">${t.name}</div>
+        <div class="txn-meta">${t.date} · ${card.name} · <span style="color:${cat.color}">${cat.name}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="txn-amount neg">-${fmt(t.amount)}</div>
+        <button onclick="openEditTxn('${t.id}')" style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 8px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer">Edit</button>
+        <button onclick="deleteTxn('${t.id}')" style="background:rgba(255,82,82,.12);color:var(--red);border:none;border-radius:8px;padding:4px 8px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEditTxn(id) {
+  const t = state.transactions.find(t=>String(t.id)===String(id));
+  if(!t) return;
+  // populate edit modal fields
+  document.getElementById('editTxnId').value = id;
+  document.getElementById('editTxnName').value = t.name;
+  document.getElementById('editTxnAmt').value = t.amount;
+  document.getElementById('editTxnDate').value = t.date;
+  const catSel = document.getElementById('editTxnCat');
+  catSel.innerHTML = CATEGORIES.map(c=>`<option value="${c.id}" ${c.id===t.cat?'selected':''}>${c.emoji} ${c.name}</option>`).join('');
+  const cardSel = document.getElementById('editTxnCard');
+  cardSel.innerHTML = CARDS.map(c=>`<option value="${c.id}" ${c.id===t.card?'selected':''}>${c.name}</option>`).join('');
+  openModal('editTxnModal');
+}
+
+function saveEditTxn() {
+  const id = document.getElementById('editTxnId').value;
+  const idx = state.transactions.findIndex(t=>String(t.id)===String(id));
+  if(idx===-1) return;
+  const name = document.getElementById('editTxnName').value.trim();
+  const amt = parseFloat(document.getElementById('editTxnAmt').value);
+  const cat = document.getElementById('editTxnCat').value;
+  const card = document.getElementById('editTxnCard').value;
+  const date = document.getElementById('editTxnDate').value;
+  if(!name||!amt||!date) { showToast('Please fill all fields'); return; }
+  const mo = MONTHS[new Date(date+'T12:00:00').getMonth()];
+  state.transactions[idx] = {id, name, amount:amt, cat, card, date, month:mo};
+  save();
+  closeModal('editTxnModal');
+  showToast('Transaction updated!');
+  renderTransactions();
+}
+
+function deleteTxn(id) {
+  if(!confirm('Delete this transaction?')) return;
+  state.transactions = state.transactions.filter(t=>String(t.id)!==String(id));
+  save();
+  showToast('Transaction deleted');
+  renderTransactions();
+}
+
+// ============================================================
+// RENDER INCOME
+// ============================================================
+function renderIncome() {
+  document.getElementById('incDate').value = new Date().toISOString().split('T')[0];
+
+  const paychecks = state.incomeAdj.filter(a=>a.type==='paycheck');
+  const adjustments = state.incomeAdj.filter(a=>a.type!=='paycheck');
+  const totalPaychecks = paychecks.reduce((s,p)=>s+p.amount,0);
+  const totalAdj = adjustments.reduce((s,a)=>s+a.amount,0);
+
+  document.getElementById('incomeStats').innerHTML = `
+    <div class="stat-card income"><div class="label">YTD Paychecks</div><div class="value">${fmtShort(totalPaychecks)}</div></div>
+    <div class="stat-card profit"><div class="label">Adjustments</div><div class="value">+${fmtShort(totalAdj)}</div></div>
+  `;
+
+  // Paychecks — all editable/deletable now
+  const pcEl = document.getElementById('paycheckList');
+  pcEl.innerHTML = paychecks.map(p=>`
+    <div class="paycheck-item">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.875rem;font-weight:600">Paycheck</div>
+        <div style="font-size:.75rem;color:var(--muted)">${p.date}, 2026${p.note?' · '+p.note:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <div style="color:var(--accent3);font-weight:700">${fmt(p.amount)}</div>
+        <button onclick="openEditIncome('${p.id}')" style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 8px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer">Edit</button>
+        <button onclick="deleteIncome('${p.id}')" style="background:rgba(255,82,82,.12);color:var(--red);border:none;border-radius:8px;padding:4px 8px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer">✕</button>
+      </div>
+    </div>`).join('');
+
+  // Adjustments
+  const adjEl = document.getElementById('adjList');
+  if(adjustments.length===0) {
+    adjEl.innerHTML='<p style="color:var(--muted);font-size:.85rem;padding:12px 0;text-align:center">No adjustments logged yet.</p>';
+    return;
+  }
+  adjEl.innerHTML = adjustments.map(a=>`
+    <div class="adj-item">
+      <div style="flex:1;min-width:0">
+        <div class="adj-label">${typeLabel(a.type)}${a.note?' – '+a.note:''}</div>
+        <div class="adj-meta">${a.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <div class="adj-val pos">+${fmt(a.amount)}</div>
+        <button onclick="openEditIncome('${a.id}')" style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 8px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer">Edit</button>
+        <button onclick="deleteIncome('${a.id}')" style="background:rgba(255,82,82,.12);color:var(--red);border:none;border-radius:8px;padding:4px 8px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function typeLabel(t) {
+  return {paycheck:'Paycheck',cashback:'Cash Back',transfer:'Transfer In',other:'Other Income'}[t]||t;
+}
+
+function addIncome() {
+  const type = document.getElementById('incType').value;
+  const amt = parseFloat(document.getElementById('incAmt').value);
+  const date = document.getElementById('incDate').value;
+  const note = document.getElementById('incNote').value.trim();
+  if(!amt||!date) { showToast('Please fill amount and date'); return; }
+  const mo = MONTHS[new Date(date+'T12:00:00').getMonth()];
+  state.incomeAdj.push({id:String(Date.now()), type, amount:amt, date, note, month:mo});
+  save();
+  closeModal('addIncomeModal');
+  document.getElementById('incAmt').value='';
+  document.getElementById('incNote').value='';
+  showToast('Income saved!');
+  renderIncome();
+}
+
+// ============================================================
+// RENDER FIXED
+// ============================================================
+function getFixedPaid(billName, month) {
+  // Look up transactions tagged as fixed for this bill+month
+  return state.transactions
+    .filter(t => t.cat === 'fixed' && t.month === month && t.fixedBill === billName)
+    .reduce((s,t) => s + t.amount, 0);
+}
+
+function renderFixed() {
+  const m = state.currentMonth;
+  const budgetTotal = state.fixedExpenses.reduce((s,f) => s + f.amount, 0);
+  const actualTotal = state.fixedExpenses.reduce((s,f) => s + (getFixedPaid(f.name, m) || 0), 0);
+  const over = actualTotal > budgetTotal;
+
+  document.getElementById('fixedBudgetStat').textContent = fmt(budgetTotal);
+  document.getElementById('fixedSubtitle').textContent = `Actual payments for ${MONTH_FULL[MONTHS.indexOf(m)] || m}`;
+  document.getElementById('fixedStatLabel').textContent = over ? '⚠️ Actual Paid' : 'Actual Paid';
+  document.getElementById('fixedListTitle').textContent = `All Fixed Bills — ${m} 2026`;
+  document.getElementById('fixedTotalStat').textContent = actualTotal > 0 ? fmt(actualTotal) : '—';
+  document.getElementById('fixedTotalStat').style.color = over ? 'var(--red)' : 'var(--accent2)';
+
+  document.getElementById('fixedList').innerHTML = state.fixedExpenses.map((f, i) => {
+    const paid = getFixedPaid(f.name, m);
+    const isOver = paid > 0 && paid > f.amount;
+    const isPending = paid === 0;
+    const diff = paid - f.amount;
+    let statusBadge = '';
+    if(isPending) statusBadge = `<span class="badge yellow">Pending</span>`;
+    else if(isOver) statusBadge = `<span class="badge red">+${fmt(diff)} over</span>`;
+    else statusBadge = `<span class="badge green">✓ Paid</span>`;
+
+    return `<div class="fixed-item" style="flex-wrap:wrap;gap:8px">
+      <div class="fixed-left" style="flex:1;min-width:0">
+        <div class="fixed-icon">${f.icon}</div>
+        <div style="min-width:0">
+          <div class="fixed-name">${f.name}</div>
+          <div class="fixed-type" style="color:${f.type==='Savings Goal'?'var(--accent4)':'var(--muted)'}">Set: ${fmt(f.amount)}/mo</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="fixed-amt" style="color:${isOver?'var(--red)':isPending?'var(--muted)':'var(--accent3)'}">${isPending ? '—' : fmt(paid)}</div>
+        ${statusBadge}
+        <button onclick="openMarkPaid('${f.name}', ${f.amount}, '${f.icon}')"
+          style="background:rgba(124,107,255,.15);color:var(--accent1);border:none;border-radius:8px;padding:4px 10px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer">
+          ${isPending ? '💳 Mark Paid' : '✏️ Edit Payment'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openMarkPaid(billName, setAmount, icon) {
+  document.getElementById('markPaidBillName').value = billName;
+  document.getElementById('markPaidTitle').textContent = `${icon} ${billName}`;
+  document.getElementById('markPaidSetAmt').textContent = fmt(setAmount);
+  document.getElementById('markPaidAmt').value = setAmount;
+  document.getElementById('markPaidDate').value = new Date().toISOString().split('T')[0];
+  // populate card select
+  const sel = document.getElementById('markPaidCard');
+  sel.innerHTML = CARDS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  // show existing payment if any
+  const m = state.currentMonth;
+  const existing = state.transactions.find(t => t.cat==='fixed' && t.month===m && t.fixedBill===billName);
+  if(existing) {
+    document.getElementById('markPaidAmt').value = existing.amount;
+    document.getElementById('markPaidDate').value = existing.date;
+    sel.value = existing.card;
+    document.getElementById('markPaidDeleteBtn').style.display = 'block';
+    document.getElementById('markPaidDeleteBtn').onclick = () => deleteFixedPayment(existing.id);
+  } else {
+    document.getElementById('markPaidDeleteBtn').style.display = 'none';
+  }
+  openModal('markPaidModal');
+}
+
+function saveMarkPaid() {
+  const billName = document.getElementById('markPaidBillName').value;
+  const amt = parseFloat(document.getElementById('markPaidAmt').value);
+  const date = document.getElementById('markPaidDate').value;
+  const card = document.getElementById('markPaidCard').value;
+  if(!amt || !date) { showToast('Please fill amount and date'); return; }
+  const m = MONTHS[new Date(date+'T12:00:00').getMonth()];
+  // Remove any existing payment for this bill+month first
+  state.transactions = state.transactions.filter(t => !(t.cat==='fixed' && t.month===m && t.fixedBill===billName));
+  // Add new payment
+  state.transactions.push({
+    id: String(Date.now()), name: billName, amount: amt,
+    cat: 'fixed', card, date, month: m, fixedBill: billName
+  });
+  save();
+  closeModal('markPaidModal');
+  showToast(`${billName} payment saved!`);
+  renderFixed();
+  renderHome();
+}
+
+function deleteFixedPayment(id) {
+  if(!confirm('Remove this payment?')) return;
+  state.transactions = state.transactions.filter(t => String(t.id) !== String(id));
+  save();
+  closeModal('markPaidModal');
+  showToast('Payment removed');
+  renderFixed();
+  renderHome();
+}
+
+
+function addFixed() {
+  const name = document.getElementById('fixedName').value.trim();
+  const amt = parseFloat(document.getElementById('fixedAmt').value);
+  const icon = document.getElementById('fixedIcon').value || '💰';
+  if(!name||!amt) { showToast('Please fill name and amount'); return; }
+  state.fixedExpenses.push({name,amount:amt,icon,type:'Fixed'});
+  save();
+  closeModal('addFixedModal');
+  document.getElementById('fixedName').value='';
+  document.getElementById('fixedAmt').value='';
+  document.getElementById('fixedIcon').value='';
+  showToast('Fixed expense added!');
+  renderFixed();
+}
+
+// ============================================================
+// RECEIPT — Manual Line Item Entry
+// ============================================================
+let receiptRowCount = 0;
+
+function openScanModal() {
+  receiptRowCount = 0;
+  document.getElementById('receiptRows').innerHTML = '';
+  document.getElementById('receiptStore').value = '';
+  document.getElementById('receiptDate').value = new Date().toISOString().split('T')[0];
+  // populate card select
+  const cardSel = document.getElementById('receiptCard');
+  cardSel.innerHTML = CARDS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  updateReceiptTotal();
+  // start with 3 blank rows
+  addReceiptRow(); addReceiptRow(); addReceiptRow();
+  openModal('scanModal');
+}
+
+function addReceiptRow() {
+  const id = receiptRowCount++;
+  const catOpts = CATEGORIES.filter(c=>c.id!=='fixed').map(c=>`<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+  const row = document.createElement('div');
+  row.id = `rrow_${id}`;
+  row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:8px';
+  row.innerHTML = `
+    <input class="form-input" placeholder="Item name" style="flex:2;font-size:.8rem;padding:8px 10px" oninput="updateReceiptTotal()">
+    <input class="form-input" type="number" placeholder="$0.00" step="0.01" style="flex:1;font-size:.8rem;padding:8px 10px" oninput="updateReceiptTotal()">
+    <select class="form-input" style="flex:1.4;font-size:.72rem;padding:8px 6px">${catOpts}</select>
+    <button onclick="removeReceiptRow(${id})" style="background:rgba(255,82,82,.15);color:var(--red);border:none;border-radius:8px;width:30px;height:36px;font-size:1rem;cursor:pointer;flex-shrink:0">✕</button>`;
+  document.getElementById('receiptRows').appendChild(row);
+  updateReceiptTotal();
+}
+
+function removeReceiptRow(id) {
+  const el = document.getElementById(`rrow_${id}`);
+  if(el) el.remove();
+  updateReceiptTotal();
+}
+
+function updateReceiptTotal() {
+  let total = 0;
+  document.querySelectorAll('#receiptRows > div').forEach(row => {
+    const amt = parseFloat(row.querySelectorAll('input')[1].value) || 0;
+    total += amt;
+  });
+  document.getElementById('receiptRunningTotal').textContent = fmt(total);
+}
+
+function saveReceiptItems() {
+  const store = document.getElementById('receiptStore').value.trim() || 'Receipt';
+  const date = document.getElementById('receiptDate').value;
+  const card = document.getElementById('receiptCard').value;
+  if(!date) { showToast('Please enter a date'); return; }
+  const mo = MONTHS[new Date(date+'T12:00:00').getMonth()];
+  let count = 0;
+  document.querySelectorAll('#receiptRows > div').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const name = inputs[0].value.trim();
+    const amt = parseFloat(inputs[1].value);
+    const cat = row.querySelector('select').value;
+    if(name && amt > 0) {
+      state.transactions.push({name:`${store} — ${name}`, amount:amt, cat, card, date, month:mo, id:Date.now()+count});
+      count++;
+    }
+  });
+  if(count === 0) { showToast('Add at least one item with a name and amount'); return; }
+  save();
+  closeModal('scanModal');
+  showToast(`${count} item${count>1?'s':''} saved!`);
+  renderTransactions();
+}
+
+// ============================================================
+// PAGE ROUTER
+// ============================================================
+function renderPage(name) {
+  if(name==='home') renderHome();
+  else if(name==='cards') renderCards();
+  else if(name==='transactions') renderTransactions();
+  else if(name==='income') renderIncome();
+  else if(name==='fixed') renderFixed();
+  else if(name==='settings') renderSettings();
+}
+
+// ============================================================
+// SETTINGS — BACKUP / RESTORE
+// ============================================================
+function renderSettings() {
+  const txns = state.transactions.filter(t => !String(t.id).match(/^(h_|fx_|p\d)/));
+  const inc  = state.incomeAdj.filter(a => !String(a.id).match(/^p\d/));
+  const fixedPayments = state.transactions.filter(t => t.fixedBill && !String(t.id).startsWith('fx_'));
+  document.getElementById('dataStats').innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.82rem;color:var(--muted)">Your transactions</span>
+      <span style="font-weight:700">${txns.length}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.82rem;color:var(--muted)">Income entries added</span>
+      <span style="font-weight:700">${inc.length}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.82rem;color:var(--muted)">Fixed payments logged</span>
+      <span style="font-weight:700">${fixedPayments.length}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0">
+      <span style="font-size:.82rem;color:var(--muted)">Income target</span>
+      <span style="font-weight:700;color:var(--accent4)">${fmt(state.incomeTarget||4541.88)}</span>
+    </div>
+  `;
+}
+
+function exportData() {
+  const backup = {
+    version: '2026-v1',
+    exportedAt: new Date().toISOString(),
+    state: state
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `budgetpro-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Backup exported!');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if(!backup.state) { showToast('❌ Invalid backup file'); return; }
+      if(!confirm('This will replace all your current data with the backup. Continue?')) return;
+      state = backup.state;
+      save();
+      showToast('✅ Data restored!');
+      renderHome();
+      renderSettings();
+    } catch(err) {
+      showToast('❌ Could not read file');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function resetUserData() {
+  if(!confirm('Are you sure? This deletes all your manually added data. Export a backup first!')) return;
+  if(!confirm('Last chance — this cannot be undone. Reset?')) return;
+  state.transactions = state.transactions.filter(t => String(t.id).match(/^(h_|fx_)/));
+  state.incomeAdj    = state.incomeAdj.filter(a => String(a.id).match(/^p\d/));
+  save();
+  showToast('Data reset to baseline');
+  renderHome();
+  renderSettings();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+  setTimeout(()=>{
+    document.getElementById('splash').style.opacity='0';
+    setTimeout(()=>document.getElementById('splash').style.display='none',500);
+  }, 1200);
+  renderHome();
+});
+</script>
+</body>
+</html>
